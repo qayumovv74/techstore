@@ -17,6 +17,8 @@ npm run db:seed               # 46 товаров и демо-пользоват
 npm run dev                   # http://localhost:3000
 ```
 
+После перезагрузки компьютера достаточно одной команды: `npm run go` — поднимет базу и сайт.
+
 `npm run db:local stop` — остановить локальную базу. Данные лежат в `.pgdata/`.
 
 Демо-доступ (пароль `demo12345`): `admin@techstore.ru`, `manager@techstore.ru`, `user@techstore.ru`.

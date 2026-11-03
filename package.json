@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "go": "npm run db:local && next dev",
     "db:local": "tsx scripts/local-db.ts",
     "dev": "next dev",
     "build": "next build",
