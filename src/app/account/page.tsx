@@ -1,38 +1,73 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
+import { count, eq } from "drizzle-orm";
+import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
-import { roleLabel } from "@/lib/format";
-import { Card } from "@/components/ui";
+import { pluralize } from "@/lib/format";
+import { formatPhone } from "@/lib/validation";
+import { PanelSkeleton } from "./skeleton";
+import { logout } from "@/app/(auth)/actions";
 
 export const metadata: Metadata = { title: "Личный кабинет" };
 
 export default function AccountPage() {
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10">
-      <Suspense fallback={<div className="h-40 animate-pulse rounded-2xl bg-surface-2" />}>
-        <Account />
-      </Suspense>
-    </main>
+    <Suspense fallback={<PanelSkeleton />}>
+      <Overview />
+    </Suspense>
   );
 }
 
-async function Account() {
+async function Overview() {
   const user = await requireUser("/account");
+  const [[orders], [favorites], [addresses], profile] = await Promise.all([
+    db.select({ n: count() }).from(schema.orders).where(eq(schema.orders.userId, user.id)),
+    db.select({ n: count() }).from(schema.favorites).where(eq(schema.favorites.userId, user.id)),
+    db.select({ n: count() }).from(schema.addresses).where(eq(schema.addresses.userId, user.id)),
+    db.query.users.findFirst({ where: eq(schema.users.id, user.id), columns: { phone: true, createdAt: true } }),
+  ]);
+
+  const tiles = [
+    { href: "/account/orders", n: orders.n, label: pluralize(orders.n, ["заказ", "заказа", "заказов"]) },
+    { href: "/account/favorites", n: favorites.n, label: `${pluralize(favorites.n, ["товар", "товара", "товаров"])} в избранном` },
+    { href: "/account/addresses", n: addresses.n, label: pluralize(addresses.n, ["адрес", "адреса", "адресов"]) },
+  ];
+
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-bold">Здравствуйте, {user.name}</h1>
-      <Card>
-        <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
-          <dt className="text-muted">Email</dt>
-          <dd>{user.email}</dd>
-          <dt className="text-muted">Роль</dt>
-          <dd>{roleLabel[user.role]}</dd>
-        </dl>
-      </Card>
-      <Card>
-        <h2 className="font-semibold">Мои заказы</h2>
-        <p className="mt-1 text-sm text-muted">Пока пусто. Заказы и их статус в реальном времени появятся на этапе 3.</p>
-      </Card>
+      <div className="rounded-2xl bg-gradient-to-br from-ink to-deep p-6 text-white dark:border dark:border-border">
+        <p className="text-sm text-sky">Здравствуйте,</p>
+        <p className="mt-1 text-2xl font-bold">{user.name}</p>
+        <p className="mt-3 text-sm text-sky">
+          {user.email}
+          {profile?.phone ? ` · ${formatPhone(profile.phone)}` : ""}
+        </p>
+        <p className="mt-1 text-xs text-sky/70">
+          С нами с {profile?.createdAt.toLocaleDateString("ru-RU", { month: "long", year: "numeric" })}
+        </p>
+      </div>
+
+      <ul className="grid gap-3 sm:grid-cols-3">
+        {tiles.map((t) => (
+          <li key={t.href}>
+            <Link href={t.href} className="block rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-primary">
+              <p className="text-3xl font-bold">{t.n}</p>
+              <p className="mt-1 text-sm text-muted">{t.label}</p>
+            </Link>
+          </li>
+        ))}
+      </ul>
+
+      {!profile?.phone ? (
+        <Link href="/account/profile" className="rounded-2xl border border-dashed border-primary p-5 text-sm hover:bg-surface-2">
+          <span className="font-semibold text-primary">Добавьте телефон</span> — курьер позвонит перед доставкой →
+        </Link>
+      ) : null}
+
+      <form action={logout} className="lg:hidden">
+        <button className="h-11 w-full rounded-xl border border-border text-sm text-danger">Выйти из аккаунта</button>
+      </form>
     </div>
   );
 }

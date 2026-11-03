@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { getCatalog, getCategories, parseFilters, SORTS, type CatalogFilters, type Sort } from "@/lib/catalog";
 import { ProductCard } from "@/components/product-card";
+import { getFavoriteIds } from "@/lib/favorites";
 import { catalogHref } from "./url";
 import { SortSelect } from "./sort-select";
 
@@ -20,7 +21,7 @@ export default function CatalogPage({ searchParams }: PageProps<"/catalog">) {
 
 async function Catalog({ searchParams }: { searchParams: PageProps<"/catalog">["searchParams"] }) {
   const f = parseFilters(await searchParams);
-  const [data, categories] = await Promise.all([getCatalog(f), getCategories()]);
+  const [data, categories, favs] = await Promise.all([getCatalog(f), getCategories(), getFavoriteIds()]);
   const title = f.q ? `Поиск: «${f.q}»` : (data.category?.name ?? "Все товары");
 
   return (
@@ -56,7 +57,7 @@ async function Catalog({ searchParams }: { searchParams: PageProps<"/catalog">["
             <ul className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
               {data.products.map((p) => (
                 <li key={p.id} className="flex">
-                  <ProductCard p={p} />
+                  <ProductCard p={p} favored={favs.has(p.id)} />
                 </li>
               ))}
             </ul>

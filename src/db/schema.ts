@@ -9,6 +9,7 @@ import {
   uuid,
   uniqueIndex,
   index,
+  primaryKey,
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
@@ -58,9 +59,13 @@ export const addresses = pgTable("addresses", {
   userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
+  /** Подпись для выбора: «Дом», «Работа» */
+  label: text("label").notNull().default("Дом"),
   city: text("city").notNull(),
   street: text("street").notNull(),
+  apartment: text("apartment"),
   comment: text("comment"),
+  isDefault: boolean("is_default").notNull().default(false),
   ...timestamps,
 });
 
@@ -114,6 +119,21 @@ export const stock = pgTable("stock", {
   reserved: integer("reserved").notNull().default(0),
   updatedAt: timestamps.updatedAt,
 });
+
+// ─── Избранное ───────────────────────────────────────────────────
+export const favorites = pgTable(
+  "favorites",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    createdAt: timestamps.createdAt,
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.productId] })],
+);
 
 // ─── Корзина и заказы ────────────────────────────────────────────
 export const cartItems = pgTable(
@@ -202,6 +222,12 @@ export const usersRelations = relations(users, ({ many }) => ({
   addresses: many(addresses),
   orders: many(orders),
   cartItems: many(cartItems),
+  favorites: many(favorites),
+}));
+
+export const favoritesRelations = relations(favorites, ({ one }) => ({
+  user: one(users, { fields: [favorites.userId], references: [users.id] }),
+  product: one(products, { fields: [favorites.productId], references: [products.id] }),
 }));
 
 export const addressesRelations = relations(addresses, ({ one }) => ({
@@ -259,5 +285,6 @@ export const orderEventsRelations = relations(orderEvents, ({ one }) => ({
 }));
 
 export type User = typeof users.$inferSelect;
+export type Address = typeof addresses.$inferSelect;
 export type Role = (typeof roleEnum.enumValues)[number];
 export type OrderStatus = (typeof orderStatusEnum.enumValues)[number];

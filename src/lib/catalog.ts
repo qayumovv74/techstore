@@ -97,6 +97,7 @@ export async function getCatalog(f: CatalogFilters) {
         name: products.name,
         brand: products.brand,
         price: products.price,
+        specs: products.specs,
         available,
         categorySlug: categories.slug,
         image: sql<string | null>`(select ${productImages.url} from ${productImages}
@@ -159,6 +160,7 @@ export async function getSimilar(productId: string, categoryId: string, price: n
       name: products.name,
       brand: products.brand,
       price: products.price,
+      specs: products.specs,
       available,
       categorySlug: categories.slug,
       image: sql<string | null>`(select ${productImages.url} from ${productImages}

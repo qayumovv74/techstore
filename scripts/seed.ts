@@ -94,15 +94,23 @@ const catalog: Record<string, { name: string; items: Seed[] }> = {
 async function main() {
   console.log("Очищаю таблицы…");
   await db.execute(
-    sql.raw(`TRUNCATE order_events, payments, order_items, orders, cart_items, stock, product_images, products, categories, addresses, users RESTART IDENTITY CASCADE`),
+    sql.raw(`TRUNCATE favorites, order_events, payments, order_items, orders, cart_items, stock, product_images, products, categories, addresses, users RESTART IDENTITY CASCADE`),
   );
 
   const hash = await bcrypt.hash("demo12345", 10);
   await db.insert(schema.users).values([
     { email: "admin@techstore.ru", name: "Админ", passwordHash: hash, role: "ADMIN" },
     { email: "manager@techstore.ru", name: "Менеджер", passwordHash: hash, role: "MANAGER" },
-    { email: "user@techstore.ru", name: "Покупатель", passwordHash: hash, role: "CUSTOMER", phone: "+7 900 123-45-67" },
+    { email: "user@techstore.ru", name: "Покупатель", passwordHash: hash, role: "CUSTOMER", phone: "+79001234567" },
   ]);
+
+  const demo = await db.query.users.findFirst({ where: (u, { eq }) => eq(u.email, "user@techstore.ru") });
+  if (demo) {
+    await db.insert(schema.addresses).values([
+      { userId: demo.id, label: "Дом", city: "Москва", street: "ул. Тверская, д. 7", apartment: "45", comment: "Домофон 45, 3 этаж", isDefault: true },
+      { userId: demo.id, label: "Работа", city: "Москва", street: "Пресненская наб., д. 12", comment: "Башня Федерация, ресепшн" },
+    ]);
+  }
 
   let count = 0;
   for (const [slug, { name, items }] of Object.entries(catalog)) {
@@ -125,6 +133,13 @@ async function main() {
       await db.insert(schema.stock).values({ productId: p.id, quantity });
       count++;
     }
+  }
+
+  if (demo) {
+    const picks = await db.query.products.findMany({
+      where: (p, { inArray }) => inArray(p.slug, ["apple-airpods-pro-3", "sony-wh-1000xm6", "apple-macbook-air-13-m4-16-256"]),
+    });
+    if (picks.length) await db.insert(schema.favorites).values(picks.map((p) => ({ userId: demo.id, productId: p.id })));
   }
 
   console.log(`Готово: 3 пользователя, ${Object.keys(catalog).length} категорий, ${count} товаров.`);

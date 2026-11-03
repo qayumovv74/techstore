@@ -5,10 +5,10 @@ const main = (page: import("@playwright/test").Page) => page.locator("main").las
 test("категория и фильтр по бренду сужают выдачу", async ({ page }) => {
   await page.goto("/catalog?category=laptops");
   await expect(main(page).getByRole("heading", { level: 1 })).toContainText("Ноутбуки");
-  await expect(main(page).locator('a[href^="/product/"]')).toHaveCount(10);
+  await expect(main(page).locator("article")).toHaveCount(10);
 
   await page.goto("/catalog?category=laptops&brand=Apple&brand=ASUS");
-  await expect(main(page).locator('a[href^="/product/"]')).toHaveCount(4);
+  await expect(main(page).locator("article")).toHaveCount(4);
   await expect(main(page).getByRole("link", { name: "Убрать фильтр Apple" })).toBeVisible();
 });
 
@@ -21,15 +21,15 @@ test("форма фильтров работает: цена и наличие",
   await expect(page).toHaveURL(/min=100000/);
   await expect(page).toHaveURL(/stock=1/);
   await expect(main(page).getByRole("link", { name: /Убрать фильтр от 100/ })).toBeVisible();
-  const prices = await main(page).locator('a[href^="/product/"] p.font-bold').allInnerTexts();
+  const prices = await main(page).locator("article .price").allInnerTexts();
   expect(prices.length).toBeGreaterThan(0);
   for (const p of prices) expect(Number(p.replace(/\D/g, ""))).toBeGreaterThanOrEqual(100000);
 });
 
 test("сортировка по цене по убыванию", async ({ page }) => {
   await page.goto("/catalog?sort=price_desc");
-  await expect(main(page).locator('a[href^="/product/"]').first()).toBeVisible();
-  const prices = (await main(page).locator('a[href^="/product/"] p.font-bold').allInnerTexts()).map((p) =>
+  await expect(main(page).locator("article").first()).toBeVisible();
+  const prices = (await main(page).locator("article .price").allInnerTexts()).map((p) =>
     Number(p.replace(/\D/g, "")),
   );
   expect(prices).toEqual([...prices].sort((a, b) => b - a));
@@ -37,7 +37,7 @@ test("сортировка по цене по убыванию", async ({ page }
 
 test("поиск находит iPhone, а «100%» не ломает запрос", async ({ page }) => {
   await page.goto("/catalog?q=iphone");
-  await expect(main(page).locator('a[href^="/product/"]').first()).toContainText("iPhone");
+  await expect(main(page).locator("article").first()).toContainText("iPhone");
   await page.goto("/catalog?q=100%25");
   await expect(main(page).getByText("Ничего не нашлось")).toBeVisible();
 });

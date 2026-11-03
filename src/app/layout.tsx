@@ -3,6 +3,8 @@ import { Suspense } from "react";
 import "@fontsource-variable/jetbrains-mono";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+import { MobileTabbar } from "@/components/mobile-tabbar";
 
 export const metadata: Metadata = {
   title: { default: "TechStore — техника с доставкой по Москве", template: "%s · TechStore" },
@@ -12,12 +14,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="ru" className="h-full antialiased">
-      <body className="flex min-h-full flex-col">
+      <body className="flex min-h-full flex-col pb-14 md:pb-0">
         <SiteHeader />
         <Suspense>{children}</Suspense>
-        <footer className="border-t border-border py-6 text-center text-xs text-muted">
-          TechStore · учебный проект для портфолио
-        </footer>
+        <SiteFooter />
+        <MobileTabbar />
       </body>
     </html>
   );

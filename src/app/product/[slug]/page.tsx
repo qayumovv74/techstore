@@ -2,7 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { getProduct, getSimilar } from "@/lib/catalog";
-import { formatPrice } from "@/lib/format";
+import { formatPrice, installment } from "@/lib/format";
+import { getFavoriteIds } from "@/lib/favorites";
+import { FavoriteButton } from "@/components/favorite-button";
 import { ProductArt } from "@/components/product-art";
 import { ProductCard } from "@/components/product-card";
 import { Gallery } from "./gallery";
@@ -25,7 +27,7 @@ export default function ProductPage({ params }: PageProps<"/product/[slug]">) {
 }
 
 async function Product({ params }: { params: PageProps<"/product/[slug]">["params"] }) {
-  const product = await getProduct((await params).slug);
+  const [product, favs] = await Promise.all([getProduct((await params).slug), getFavoriteIds()]);
   if (!product) notFound();
 
   const specs = Object.entries(product.specs);
@@ -54,7 +56,13 @@ async function Product({ params }: { params: PageProps<"/product/[slug]">["param
           <h1 className="mt-2 text-2xl font-bold leading-tight sm:text-3xl">{product.name}</h1>
 
           <div className="mt-6 rounded-2xl border border-border bg-surface p-5">
-            <p className="text-3xl font-bold">{formatPrice(product.price)}</p>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-3xl font-bold">{formatPrice(product.price)}</p>
+                <p className="mt-1 text-sm text-muted">или от {installment(product.price)} ₽/мес · рассрочка 0-0-12</p>
+              </div>
+              <FavoriteButton productId={product.id} initial={favs.has(product.id)} className="size-11 border border-border" />
+            </div>
             <p className={`mt-1 text-sm ${left > 0 ? "text-primary" : "text-danger"}`}>
               {left > 0 ? (left <= 3 ? `Осталось ${left} шт. — успейте` : `В наличии: ${left} шт.`) : "Нет в наличии"}
             </p>
@@ -65,10 +73,11 @@ async function Product({ params }: { params: PageProps<"/product/[slug]">["param
             >
               {left > 0 ? "В корзину · скоро" : "Сообщить о поступлении · скоро"}
             </button>
-            <ul className="mt-4 space-y-1 text-xs text-muted">
-              <li>Доставка по Москве — завтра</li>
-              <li>Официальная гарантия 12 месяцев</li>
-            </ul>
+            <dl className="mt-5 grid gap-3 border-t border-border pt-4 text-sm">
+              <div className="flex justify-between gap-4"><dt className="text-muted">Курьером по Москве</dt><dd className="font-medium">завтра · бесплатно</dd></div>
+              <div className="flex justify-between gap-4"><dt className="text-muted">Самовывоз</dt><dd className="font-medium">сегодня · бесплатно</dd></div>
+              <div className="flex justify-between gap-4"><dt className="text-muted">Гарантия</dt><dd className="font-medium">12 месяцев</dd></div>
+            </dl>
           </div>
 
           {specs.length ? (
@@ -97,7 +106,7 @@ async function Product({ params }: { params: PageProps<"/product/[slug]">["param
 }
 
 async function Similar({ id, categoryId, price }: { id: string; categoryId: string; price: number }) {
-  const items = await getSimilar(id, categoryId, price);
+  const [items, favs] = await Promise.all([getSimilar(id, categoryId, price), getFavoriteIds()]);
   if (!items.length) return null;
   return (
     <section className="mt-14">
@@ -105,7 +114,7 @@ async function Similar({ id, categoryId, price }: { id: string; categoryId: stri
       <ul className="mt-4 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
         {items.map((p) => (
           <li key={p.id} className="flex">
-            <ProductCard p={p} />
+            <ProductCard p={p} favored={favs.has(p.id)} />
           </li>
         ))}
       </ul>
