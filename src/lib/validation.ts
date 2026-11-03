@@ -26,7 +26,8 @@ const ruPhone = z
   .string()
   .trim()
   .transform((v) => v.replace(/[^\d+]/g, "").replace(/^8(?=\d{10}$)/, "+7"))
-  .refine((v) => v === "" || /^\+7\d{10}$/.test(v), "Формат: +7 900 123-45-67");
+  .transform((v) => (v === "+7" || v === "+" ? "" : v))
+  .refine((v) => v === "" || /^\+7\d{10}$/.test(v), "Номер из 10 цифр после +7");
 
 export const profileSchema = z.object({
   name: z.string().trim().min(2, "Минимум 2 символа").max(60),
@@ -53,9 +54,15 @@ export const addressSchema = z.object({
 /** nonce меняется после успешной отправки — форма сбрасывается через key */
 export type ActionState = FormState & { ok?: boolean; message?: string; nonce?: number };
 
-/** Красиво показать телефон: +79001234567 → +7 900 123-45-67 */
+/** +79001234567 → +7 (900) 123-45-67 */
 export function formatPhone(v: string | null | undefined) {
   if (!v) return "";
   const m = v.match(/^\+7(\d{3})(\d{3})(\d{2})(\d{2})$/);
-  return m ? `+7 ${m[1]} ${m[2]}-${m[3]}-${m[4]}` : v;
+  return m ? `+7 (${m[1]}) ${m[2]}-${m[3]}-${m[4]}` : v;
 }
+
+export const forgotSchema = z.object({ email: z.email("Введите корректный email").trim().toLowerCase() });
+
+export const resetSchema = z
+  .object({ token: z.string().min(20), next: registerSchema.shape.password, confirm: z.string() })
+  .refine((d) => d.next === d.confirm, { path: ["confirm"], message: "Пароли не совпадают" });

@@ -5,6 +5,7 @@ import { desc, eq, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { ProductCard } from "@/components/product-card";
+import { getCartIds } from "@/lib/cart";
 import { PanelSkeleton } from "../skeleton";
 
 export const metadata: Metadata = { title: "Избранное" };
@@ -20,6 +21,7 @@ export default function FavoritesPage() {
 async function Favorites() {
   const user = await requireUser("/account/favorites");
   const { products, stock, categories, productImages, favorites } = schema;
+  const cartIds = await getCartIds();
   const rows = await db
     .select({
       id: products.id,
@@ -53,7 +55,7 @@ async function Favorites() {
     <ul className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-3">
       {rows.map((p) => (
         <li key={p.id} className="flex">
-          <ProductCard p={p} favored />
+          <ProductCard p={p} favored inCart={cartIds.has(p.id)} />
         </li>
       ))}
     </ul>

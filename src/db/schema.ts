@@ -108,6 +108,11 @@ export const productImages = pgTable("product_images", {
     .references(() => products.id, { onDelete: "cascade" }),
   url: text("url").notNull(),
   position: integer("position").notNull().default(0),
+  // Фото со свободной лицензией требуют указать автора
+  author: text("author"),
+  license: text("license"),
+  licenseUrl: text("license_url"),
+  sourceUrl: text("source_url"),
 });
 
 export const stock = pgTable("stock", {
@@ -119,6 +124,22 @@ export const stock = pgTable("stock", {
   reserved: integer("reserved").notNull().default(0),
   updatedAt: timestamps.updatedAt,
 });
+
+/** Ссылки «Забыли пароль?». Храним только хеш токена — утечка таблицы не даст войти. */
+export const passwordResets = pgTable(
+  "password_resets",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull().unique(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdAt: timestamps.createdAt,
+  },
+  (t) => [index("password_resets_user_idx").on(t.userId)],
+);
 
 // ─── Избранное ───────────────────────────────────────────────────
 export const favorites = pgTable(

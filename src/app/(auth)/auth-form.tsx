@@ -35,6 +35,12 @@ export function AuthForm({ mode, next }: { mode: "login" | "register"; next?: st
           required
         />
 
+        {mode === "login" ? (
+          <Link href="/forgot-password" className="-mt-2 self-end text-sm text-primary hover:text-primary-hover">
+            Забыли пароль?
+          </Link>
+        ) : null}
+
         {state.error ? (
           <p role="alert" className="rounded-xl bg-danger/10 px-3.5 py-2.5 text-sm text-danger">
             {state.error}

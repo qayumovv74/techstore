@@ -15,6 +15,20 @@
       "when": 1793732154639,
       "tag": "0001_account_favorites",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793738124892,
+      "tag": "0002_password_resets",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793738536329,
+      "tag": "0003_image_credits",
+      "breakpoints": true
     }
   ]
 }

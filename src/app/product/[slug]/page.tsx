@@ -4,7 +4,11 @@ import { Suspense } from "react";
 import { getProduct, getSimilar } from "@/lib/catalog";
 import { formatPrice, installment } from "@/lib/format";
 import { getFavoriteIds } from "@/lib/favorites";
+import { getCartIds } from "@/lib/cart";
+import { getCity } from "@/lib/city";
+import { deliveryInfo } from "@/data/cities";
 import { FavoriteButton } from "@/components/favorite-button";
+import { AddToCart } from "@/components/add-to-cart";
 import { ProductArt } from "@/components/product-art";
 import { ProductCard } from "@/components/product-card";
 import { Gallery } from "./gallery";
@@ -27,7 +31,8 @@ export default function ProductPage({ params }: PageProps<"/product/[slug]">) {
 }
 
 async function Product({ params }: { params: PageProps<"/product/[slug]">["params"] }) {
-  const [product, favs] = await Promise.all([getProduct((await params).slug), getFavoriteIds()]);
+  const [product, favs, city, cartIds] = await Promise.all([getProduct((await params).slug), getFavoriteIds(), getCity(), getCartIds()]);
+  const delivery = deliveryInfo(city);
   if (!product) notFound();
 
   const specs = Object.entries(product.specs);
@@ -66,16 +71,18 @@ async function Product({ params }: { params: PageProps<"/product/[slug]">["param
             <p className={`mt-1 text-sm ${left > 0 ? "text-primary" : "text-danger"}`}>
               {left > 0 ? (left <= 3 ? `Осталось ${left} шт. — успейте` : `В наличии: ${left} шт.`) : "Нет в наличии"}
             </p>
-            <button
-              disabled
-              title="Корзина появится на этапе 3"
-              className="mt-4 h-12 w-full rounded-xl bg-primary text-sm font-semibold text-on-primary opacity-60"
-            >
-              {left > 0 ? "В корзину · скоро" : "Сообщить о поступлении · скоро"}
-            </button>
+            <div className="mt-4">
+              <AddToCart productId={product.id} inCart={cartIds.has(product.id)} disabled={left <= 0} size="lg" />
+            </div>
             <dl className="mt-5 grid gap-3 border-t border-border pt-4 text-sm">
-              <div className="flex justify-between gap-4"><dt className="text-muted">Курьером по Москве</dt><dd className="font-medium">завтра · бесплатно</dd></div>
-              <div className="flex justify-between gap-4"><dt className="text-muted">Самовывоз</dt><dd className="font-medium">сегодня · бесплатно</dd></div>
+              <div className="flex justify-between gap-4">
+                <dt className="text-muted">Курьером, {city}</dt>
+                <dd className="font-medium">{delivery.courier} · {delivery.courierPrice ? formatPrice(delivery.courierPrice) : "бесплатно"}</dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="text-muted">Самовывоз</dt>
+                <dd className="font-medium">{delivery.pickup} · бесплатно</dd>
+              </div>
               <div className="flex justify-between gap-4"><dt className="text-muted">Гарантия</dt><dd className="font-medium">12 месяцев</dd></div>
             </dl>
           </div>
@@ -106,7 +113,7 @@ async function Product({ params }: { params: PageProps<"/product/[slug]">["param
 }
 
 async function Similar({ id, categoryId, price }: { id: string; categoryId: string; price: number }) {
-  const [items, favs] = await Promise.all([getSimilar(id, categoryId, price), getFavoriteIds()]);
+  const [items, favs, cartIds] = await Promise.all([getSimilar(id, categoryId, price), getFavoriteIds(), getCartIds()]);
   if (!items.length) return null;
   return (
     <section className="mt-14">
@@ -114,7 +121,7 @@ async function Similar({ id, categoryId, price }: { id: string; categoryId: stri
       <ul className="mt-4 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
         {items.map((p) => (
           <li key={p.id} className="flex">
-            <ProductCard p={p} favored={favs.has(p.id)} />
+            <ProductCard p={p} favored={favs.has(p.id)} inCart={cartIds.has(p.id)} />
           </li>
         ))}
       </ul>

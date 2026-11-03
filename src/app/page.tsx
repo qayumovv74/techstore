@@ -1,28 +1,38 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { getCatalog, getCategories, parseFilters } from "@/lib/catalog";
 import { ProductCard } from "@/components/product-card";
 import { ProductArt } from "@/components/product-art";
 import { getFavoriteIds } from "@/lib/favorites";
+import { getCartIds } from "@/lib/cart";
 
 export default function HomePage() {
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-ink via-ink to-deep p-6 text-white sm:p-12 dark:border dark:border-border dark:from-deep dark:via-ink">
-        <div aria-hidden className="absolute -right-24 -top-24 size-80 rounded-full bg-teal/30 blur-3xl" />
-        <p className="relative text-xs font-semibold uppercase tracking-[0.2em] text-sky">{"// новинки осени"}</p>
-        <h1 className="relative mt-3 max-w-2xl text-3xl font-bold leading-tight sm:text-5xl">
-          Техника, которая <span className="text-aqua">работает на вас</span>
-        </h1>
-        <p className="relative mt-4 max-w-lg text-sm text-sky sm:text-base">
-          Официальная гарантия, доставка по Москве за 1 день и статус заказа в реальном времени.
-        </p>
-        <form action="/catalog" role="search" className="relative mt-6 hidden max-w-md gap-2 md:flex">
-          <label className="sr-only" htmlFor="hero-search">Поиск</label>
-          <input id="hero-search" name="q" type="search" placeholder="Что ищем?"
-            className="h-11 min-w-0 flex-1 rounded-xl border border-slate bg-deep px-3.5 text-sm text-white placeholder:text-sky/70 outline-none focus:border-aqua" />
-          <button className="h-11 rounded-xl bg-aqua px-5 text-sm font-semibold text-ink hover:bg-sky">Найти</button>
-        </form>
+      <section className="relative overflow-hidden rounded-3xl bg-black px-6 py-10 text-white sm:px-12 sm:py-14">
+        <Image
+          src="/brand/mark-silver.png"
+          alt=""
+          width={730}
+          height={372}
+          priority
+          className="pointer-events-none absolute -right-16 bottom-6 w-[380px] opacity-25 sm:right-10 sm:top-1/2 sm:w-[440px] sm:-translate-y-1/2 sm:opacity-100"
+        />
+        <div className="relative max-w-xl">
+          <h1 className="text-3xl font-bold leading-tight sm:text-5xl">Электроника с официальной гарантией</h1>
+          <p className="mt-4 text-sm text-sky sm:text-base">
+            Смартфоны, ноутбуки, наушники и гаджеты. Курьер привезёт завтра, а из пункта выдачи можно забрать уже сегодня.
+          </p>
+          <div className="mt-7 flex flex-wrap gap-3">
+            <Link href="/catalog" className="inline-flex h-11 items-center rounded-xl bg-white px-6 text-sm font-semibold text-ink hover:bg-sky">
+              Перейти в каталог
+            </Link>
+            <Link href="/catalog?category=smartphones" className="inline-flex h-11 items-center rounded-xl border border-white/30 px-6 text-sm font-semibold hover:border-white">
+              Смартфоны
+            </Link>
+          </div>
+        </div>
       </section>
 
       <Suspense fallback={<GridSkeleton />}>
@@ -33,7 +43,7 @@ export default function HomePage() {
 }
 
 async function Sections() {
-  const [categories, favs] = await Promise.all([getCategories(), getFavoriteIds()]);
+  const [categories, favs, cartIds] = await Promise.all([getCategories(), getFavoriteIds(), getCartIds()]);
   const sections = await Promise.all(
     categories.map(async (c) => ({ c, data: await getCatalog(parseFilters({ category: c.slug, stock: "1" })) })),
   );
@@ -65,7 +75,7 @@ async function Sections() {
           <ul className="mt-4 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
             {data.products.slice(0, 4).map((p) => (
               <li key={p.id} className="flex">
-                <ProductCard p={p} favored={favs.has(p.id)} />
+                <ProductCard p={p} favored={favs.has(p.id)} inCart={cartIds.has(p.id)} />
               </li>
             ))}
           </ul>

@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { Button, Field } from "@/components/ui";
+import { PhoneInput } from "@/components/phone-input";
 import type { ActionState } from "@/lib/validation";
 import { addAddress, changePassword, updateProfile } from "./actions";
 
@@ -17,8 +18,7 @@ export function ProfileForm({ name, phone }: { name: string; phone: string }) {
   return (
     <form action={action} className="flex flex-col gap-4" noValidate>
       <Field label="Имя" name="name" autoComplete="name" defaultValue={state.values?.name ?? name} errors={fe.name} />
-      <Field label="Телефон" name="phone" type="tel" autoComplete="tel" placeholder="+7 900 123-45-67"
-        defaultValue={state.values?.phone ?? phone} errors={fe.phone} />
+      <PhoneInput name="phone" defaultValue={state.values?.phone ?? phone} errors={fe.phone} />
       <div className="flex items-center gap-4">
         <Button disabled={pending}>{pending ? "Сохраняю…" : "Сохранить"}</Button>
         <Status state={state} />

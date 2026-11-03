@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { db, schema } from "@/db";
 import { createSession, deleteSession } from "@/lib/session";
+import { mergeGuestCart } from "@/lib/cart";
 import { loginSchema, registerSchema, type FormState } from "@/lib/validation";
 
 // Хеш-заглушка: проверка пароля идёт одинаково долго, есть пользователь или нет.
@@ -31,6 +32,7 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
   }
 
   await createSession({ userId: user.id, role: user.role });
+  await mergeGuestCart(user.id);
   const fallback = user.role === "CUSTOMER" ? "/account" : "/admin";
   redirect(safeNext(formData.get("next"), fallback));
 }
@@ -59,6 +61,7 @@ export async function register(_prev: FormState, formData: FormData): Promise<Fo
   }
 
   await createSession({ userId: user.id, role: user.role });
+  await mergeGuestCart(user.id);
   redirect(safeNext(formData.get("next"), "/account"));
 }
 

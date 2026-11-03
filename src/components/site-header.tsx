@@ -4,21 +4,23 @@ import { asc, count, eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { getCurrentUser, STAFF_ROLES } from "@/lib/auth";
 import { CatalogMenu } from "./catalog-menu";
-import { IconCart, IconGrid, IconHeart, IconPin, IconSearch, IconUser } from "./icons";
+import { CityPicker } from "./city-picker";
+import { getCity } from "@/lib/city";
+import { deliveryInfo } from "@/data/cities";
+import { getCartCount } from "@/lib/cart";
+import { IconCart, IconGrid, IconHeart, IconSearch, IconUser } from "./icons";
 import { Logo } from "./logo";
 
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-bg/90 backdrop-blur">
-      {/* Верхняя полоса: город и сервисная информация */}
       <div className="hidden border-b border-border/60 text-xs text-muted md:block">
         <div className="mx-auto flex h-9 max-w-6xl items-center gap-6 px-4">
-          <span className="inline-flex items-center gap-1.5 font-medium text-text">
-            <IconPin className="size-4 text-primary" /> Москва
-          </span>
-          <span>Доставка завтра · Самовывоз сегодня</span>
-          <span>Рассрочка 0-0-12</span>
-          <span className="ml-auto">Пн–Вс 9:00–21:00</span>
+          <Suspense fallback={<span className="font-medium text-text">Москва</span>}>
+            <CityBar />
+          </Suspense>
+          <Link href="/installment" className="hover:text-primary">Рассрочка 0-0-12</Link>
+          <Link href="/contacts" className="ml-auto hover:text-primary">Пн–Вс 9:00–21:00 · Контакты</Link>
         </div>
       </div>
 
@@ -45,6 +47,11 @@ export function SiteHeader() {
         </div>
       </div>
 
+      <div className="flex items-center gap-3 px-4 pb-2 text-xs text-muted md:hidden">
+        <Suspense fallback={<span className="font-medium text-text">Москва</span>}>
+          <CityBar />
+        </Suspense>
+      </div>
       <form action="/catalog" role="search" className="relative px-4 pb-3 md:hidden">
         <label className="sr-only" htmlFor="site-search-mobile">Поиск по каталогу</label>
         <IconSearch className="pointer-events-none absolute left-7 top-[calc(50%-6px)] size-5 -translate-y-1/2 text-muted" />
@@ -52,6 +59,19 @@ export function SiteHeader() {
           className="h-11 w-full rounded-xl border border-border bg-surface pl-11 pr-3.5 text-sm outline-none focus:border-primary" />
       </form>
     </header>
+  );
+}
+
+async function CityBar() {
+  const city = await getCity();
+  const d = deliveryInfo(city);
+  return (
+    <>
+      <CityPicker city={city} />
+      <Link href="/delivery" className="hover:text-primary">
+        Доставка {d.courier} · Самовывоз {d.pickup}
+      </Link>
+    </>
   );
 }
 
@@ -89,9 +109,12 @@ function HeaderIcon({ href, label, badge, children }: { href: string; label: str
 
 async function UserArea() {
   const user = await getCurrentUser();
-  const favCount = user
-    ? (await db.select({ n: count() }).from(schema.favorites).where(eq(schema.favorites.userId, user.id)))[0].n
-    : 0;
+  const [favCount, cartCount] = await Promise.all([
+    user
+      ? db.select({ n: count() }).from(schema.favorites).where(eq(schema.favorites.userId, user.id)).then((r) => r[0].n)
+      : 0,
+    getCartCount(),
+  ]);
 
   return (
     <div className="flex items-center gap-1 md:gap-2">
@@ -104,7 +127,7 @@ async function UserArea() {
         <HeaderIcon href="/account/favorites" label="Избранное" badge={favCount}>
           <IconHeart className="size-6" />
         </HeaderIcon>
-        <HeaderIcon href="/cart" label="Корзина">
+        <HeaderIcon href="/cart" label="Корзина" badge={cartCount}>
           <IconCart className="size-6" />
         </HeaderIcon>
       </div>

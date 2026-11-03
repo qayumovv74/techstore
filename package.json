@@ -11,7 +11,7 @@
     "db:up": "docker compose up -d",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:seed": "tsx --env-file=.env scripts/seed.ts",
+    "db:seed": "tsx --env-file=.env scripts/seed.ts && npm run images:import",
     "db:studio": "drizzle-kit studio",
     "typecheck": "tsc --noEmit",
     "images:import": "tsx --env-file=.env scripts/import-images.ts",

@@ -6,9 +6,10 @@ const cols = [
     title: "Покупателям",
     links: [
       ["Каталог", "/catalog"],
-      ["Смартфоны", "/catalog?category=smartphones"],
-      ["Ноутбуки", "/catalog?category=laptops"],
-      ["Аудио", "/catalog?category=audio"],
+      ["Доставка", "/delivery"],
+      ["Рассрочка", "/installment"],
+      ["Контакты", "/contacts"],
+      ["Авторы фото", "/photo-credits"],
     ],
   },
   {

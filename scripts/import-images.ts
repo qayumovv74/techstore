@@ -1,5 +1,6 @@
 /**
  * Подтягивает фото товаров из папок public/products/<slug>/ в базу.
+ * Если рядом лежит credits.json — сохраняем автора и лицензию (для фото с Wikimedia Commons).
  *
  *   1. Положи файлы в папку товара: 1.webp, 2.webp, 3.webp (порядок = по имени)
  *   2. npm run images:import
@@ -7,7 +8,7 @@
  * Скрипт можно запускать сколько угодно раз: он заменяет список фото товара
  * на то, что лежит в его папке. Пустая папка — фото не трогаются.
  */
-import { readdirSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { readdirSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { eq, asc } from "drizzle-orm";
@@ -32,6 +33,10 @@ async function main() {
     const dir = path.join(ROOT, p.slug);
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
     const files = readdirSync(dir).filter((f) => OK.test(f)).sort((a, b) => a.localeCompare(b, "en", { numeric: true }));
+    const creditsFile = path.join(dir, "credits.json");
+    const credits: { file: string; author: string; license: string; licenseUrl: string; source: string }[] = existsSync(creditsFile)
+      ? JSON.parse(readFileSync(creditsFile, "utf8"))
+      : [];
     if (!files.length) {
       if (!p.images.length) missing.push(p);
       continue;
@@ -39,7 +44,18 @@ async function main() {
     await db.transaction(async (tx) => {
       await tx.delete(schema.productImages).where(eq(schema.productImages.productId, p.id));
       await tx.insert(schema.productImages).values(
-        files.map((f, i) => ({ productId: p.id, url: `/products/${p.slug}/${f}`, position: i })),
+        files.map((f, i) => {
+          const c = credits.find((x) => x.file === f);
+          return {
+            productId: p.id,
+            url: `/products/${p.slug}/${f}`,
+            position: i,
+            author: c?.author ?? null,
+            license: c?.license ?? null,
+            licenseUrl: c?.licenseUrl || null,
+            sourceUrl: c?.source ?? null,
+          };
+        }),
       );
     });
     updated++;

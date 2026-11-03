@@ -19,13 +19,27 @@ test("профиль: телефон проверяется и сохраняе�
   await page.waitForLoadState("networkidle");
   await page.getByLabel("Телефон").fill("12345");
   await page.getByRole("button", { name: "Сохранить" }).click();
-  await expect(page.getByText("Формат: +7 900 123-45-67")).toBeVisible();
+  await expect(page.getByText("Номер из 10 цифр после +7")).toBeVisible();
 
   await page.getByLabel("Телефон").fill("8 (900) 123-45-67");
   await page.getByRole("button", { name: "Сохранить" }).click();
   await expect(page.getByRole("status")).toHaveText("✓ Сохранено");
   await page.reload();
-  await expect(page.getByLabel("Телефон")).toHaveValue("+7 900 123-45-67");
+  await expect(page.getByLabel("Телефон")).toHaveValue("+7 (900) 123-45-67");
+});
+
+test("телефон: маска подставляет +7 ( при фокусе", async ({ page }) => {
+  await signUp(page);
+  await page.goto("/account/profile");
+  await page.waitForLoadState("networkidle");
+  const phone = page.getByLabel("Телефон");
+  await phone.click();
+  await expect(phone).toHaveValue("+7 (");
+  await phone.pressSequentially("9001234567");
+  await expect(phone).toHaveValue("+7 (900) 123-45-67");
+  await phone.press("Backspace");
+  await phone.press("Backspace");
+  await expect(phone).toHaveValue("+7 (900) 123-45");
 });
 
 test("адреса: первый становится основным, можно удалить", async ({ page }) => {
