@@ -2,7 +2,7 @@
 # Приложение запускается через `npm run dev`.
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:17-alpine
     restart: unless-stopped
     environment:
       POSTGRES_USER: techstore

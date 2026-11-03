@@ -10,11 +10,14 @@
 ```bash
 cp .env.example .env          # затем поменяй SESSION_SECRET
 npm install
-npm run db:up                 # PostgreSQL и Redis в Docker
+npm run db:local              # PostgreSQL без Docker (бинарники из node_modules)
+#   или: npm run db:up        # PostgreSQL и Redis в Docker
 npm run db:migrate            # создать таблицы
 npm run db:seed               # 46 товаров и демо-пользователи
 npm run dev                   # http://localhost:3000
 ```
+
+`npm run db:local stop` — остановить локальную базу. Данные лежат в `.pgdata/`.
 
 Демо-доступ (пароль `demo12345`): `admin@techstore.uz`, `manager@techstore.uz`, `user@techstore.uz`.
 
@@ -53,6 +56,7 @@ scripts/seed.ts    демо-данные
 | Команда | Что делает |
 | --- | --- |
 | `npm run dev` | Режим разработки |
+| `npm run db:local` | Запустить локальный PostgreSQL (`stop` — остановить) |
 | `npm run build && npm start` | Продакшен-сборка |
 | `npm run db:generate` | Миграция из изменений `schema.ts` |
 | `npm run db:migrate` | Применить миграции |
