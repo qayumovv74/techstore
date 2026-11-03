@@ -19,7 +19,7 @@ npm run dev                   # http://localhost:3000
 
 `npm run db:local stop` — остановить локальную базу. Данные лежат в `.pgdata/`.
 
-Демо-доступ (пароль `demo12345`): `admin@techstore.uz`, `manager@techstore.uz`, `user@techstore.uz`.
+Демо-доступ (пароль `demo12345`): `admin@techstore.ru`, `manager@techstore.ru`, `user@techstore.ru`.
 
 ## Структура
 
@@ -46,7 +46,7 @@ scripts/seed.ts    демо-данные
 ## Ключевые решения
 
 - **Безопасность в два слоя.** `proxy.ts` отсекает гостей до рендера, но права ещё раз проверяет каждая страница и Server Action через `lib/auth.ts`.
-- **Цены в сумах целым числом** — без ошибок округления.
+- **Цены в копейках целым числом** — без ошибок округления.
 - **Снимки данных в заказе** (`name_at_purchase`, `price_at_purchase`, `address_snapshot`) — смена цены не меняет старые заказы.
 - **Резерв остатков** (`stock.reserved`) — два покупателя не купят последний товар одновременно.
 - **Защита входа:** httpOnly-cookie, `sameSite=lax`, одинаковое время ответа для существующих и несуществующих email, проверка `?next=` от открытых редиректов.

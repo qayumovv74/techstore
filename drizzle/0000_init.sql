@@ -1,5 +1,5 @@
 CREATE TYPE "public"."order_status" AS ENUM('PENDING_PAYMENT', 'PAID', 'ASSEMBLING', 'SHIPPING', 'DELIVERED', 'CANCELLED');--> statement-breakpoint
-CREATE TYPE "public"."payment_provider" AS ENUM('MOCK', 'CLICK', 'PAYME');--> statement-breakpoint
+CREATE TYPE "public"."payment_provider" AS ENUM('MOCK', 'YOOKASSA', 'SBP');--> statement-breakpoint
 CREATE TYPE "public"."payment_status" AS ENUM('PENDING', 'PAID', 'FAILED', 'REFUNDED');--> statement-breakpoint
 CREATE TYPE "public"."role" AS ENUM('CUSTOMER', 'MANAGER', 'ADMIN');--> statement-breakpoint
 CREATE TABLE "addresses" (

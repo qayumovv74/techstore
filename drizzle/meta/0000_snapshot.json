@@ -1,5 +1,5 @@
 {
-  "id": "97111843-1a5a-4eca-b163-1dfbc3d72e3e",
+  "id": "8e0a1508-64a9-4771-9b31-dbbdad26151c",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -996,8 +996,8 @@
       "schema": "public",
       "values": [
         "MOCK",
-        "CLICK",
-        "PAYME"
+        "YOOKASSA",
+        "SBP"
       ]
     },
     "public.payment_status": {

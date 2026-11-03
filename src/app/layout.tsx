@@ -5,7 +5,7 @@ import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 
 export const metadata: Metadata = {
-  title: { default: "TechStore — техника с доставкой по Ташкенту", template: "%s · TechStore" },
+  title: { default: "TechStore — техника с доставкой по Москве", template: "%s · TechStore" },
   description: "Смартфоны, ноутбуки, аудио и гаджеты с официальной гарантией.",
 };
 

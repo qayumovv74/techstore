@@ -1,6 +1,10 @@
-const sum = new Intl.NumberFormat("ru-RU");
+const rub = new Intl.NumberFormat("ru-RU", {
+  style: "currency",
+  currency: "RUB",
+  maximumFractionDigits: 0,
+});
 
-/** 16900000 → «16 900 000 сум» */
-export const formatPrice = (value: number) => `${sum.format(value)} сум`;
+/** Цены храним в копейках: 12999000 → «129 990 ₽» */
+export const formatPrice = (kopecks: number) => rub.format(kopecks / 100);
 
 export const roleLabel = { CUSTOMER: "Покупатель", MANAGER: "Менеджер", ADMIN: "Админ" } as const;

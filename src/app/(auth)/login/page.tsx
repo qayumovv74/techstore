@@ -25,9 +25,9 @@ function DemoAccounts() {
     <div className="w-full max-w-md rounded-2xl border border-dashed border-border p-4 text-sm text-muted">
       <p className="font-semibold text-text">Демо-доступ · пароль demo12345</p>
       <ul className="mt-2 space-y-1 font-mono text-xs">
-        <li>admin@techstore.uz — админ</li>
-        <li>manager@techstore.uz — менеджер</li>
-        <li>user@techstore.uz — покупатель</li>
+        <li>admin@techstore.ru — админ</li>
+        <li>manager@techstore.ru — менеджер</li>
+        <li>user@techstore.ru — покупатель</li>
       </ul>
     </div>
   );

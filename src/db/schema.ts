@@ -32,7 +32,7 @@ export const paymentStatusEnum = pgEnum("payment_status", [
   "REFUNDED",
 ]);
 
-export const paymentProviderEnum = pgEnum("payment_provider", ["MOCK", "CLICK", "PAYME"]);
+export const paymentProviderEnum = pgEnum("payment_provider", ["MOCK", "YOOKASSA", "SBP"]);
 
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -86,7 +86,7 @@ export const products = pgTable(
     slug: text("slug").notNull().unique(),
     brand: text("brand").notNull(),
     description: text("description").notNull().default(""),
-    /** Цена в сумах, целым числом — без ошибок округления */
+    /** Цена в копейках, целым числом — без ошибок округления (12999000 = 129 990 ₽) */
     price: integer("price").notNull(),
     /** Характеристики различаются по типу техники, поэтому JSON */
     specs: jsonb("specs").$type<Record<string, string>>().notNull().default({}),
@@ -167,6 +167,7 @@ export const orderItems = pgTable("order_items", {
   qty: integer("qty").notNull(),
 });
 
+/** Суммы во всех таблицах — в копейках */
 export const payments = pgTable("payments", {
   id: uuid("id").primaryKey().defaultRandom(),
   orderId: uuid("order_id")
