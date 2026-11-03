@@ -14,15 +14,35 @@ export function SiteHeader() {
           TechStore
         </Link>
         <nav className="hidden gap-5 text-sm text-muted sm:flex">
-          <Link href="/" className="hover:text-text">Каталог</Link>
+          <Link href="/catalog" className="hover:text-text">Каталог</Link>
         </nav>
-        <div className="ml-auto">
+        <form action="/catalog" role="search" className="ml-auto hidden flex-1 md:block md:max-w-sm">
+          <label className="sr-only" htmlFor="site-search">Поиск по каталогу</label>
+          <input
+            id="site-search"
+            name="q"
+            type="search"
+            placeholder="Найти iPhone, AirPods…"
+            className="h-10 w-full rounded-xl border border-border bg-surface px-3.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/25"
+          />
+        </form>
+        <div className="ml-auto md:ml-0">
           {/* Сессия читается на запросе — поэтому за Suspense, остальная шапка статична */}
           <Suspense fallback={<div className="h-9 w-24 animate-pulse rounded-xl bg-surface-2" />}>
             <UserMenu />
           </Suspense>
         </div>
       </div>
+      <form action="/catalog" role="search" className="px-4 pb-3 md:hidden">
+        <label className="sr-only" htmlFor="site-search-mobile">Поиск по каталогу</label>
+        <input
+          id="site-search-mobile"
+          name="q"
+          type="search"
+          placeholder="Найти iPhone, AirPods…"
+          className="h-10 w-full rounded-xl border border-border bg-surface px-3.5 text-sm outline-none focus:border-primary"
+        />
+      </form>
     </header>
   );
 }

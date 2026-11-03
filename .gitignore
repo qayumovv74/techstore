@@ -44,3 +44,7 @@ next-env.d.ts
 
 # локальная база embedded-postgres
 .pgdata/
+
+# playwright
+/test-results/
+/playwright-report/

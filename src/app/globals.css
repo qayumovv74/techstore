@@ -18,7 +18,8 @@
   --color-sky: #6da5c0;
   --color-slate: #294d61;
 
-  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, "Cascadia Code", Consolas, monospace;
+  --font-sans: var(--font-mono);
 }
 
 /* Семантические токены: компоненты используют их, а не сырые цвета */
@@ -82,5 +83,11 @@
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font-sans);
+  font-family: var(--font-mono);
+  font-feature-settings: "zero" 0, "calt" 1;
+}
+
+/* Моноширинный шрифт широкий — чуть плотнее заголовки */
+h1, h2, h3 {
+  letter-spacing: -0.02em;
 }

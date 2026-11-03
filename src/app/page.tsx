@@ -1,65 +1,57 @@
+import Link from "next/link";
 import { Suspense } from "react";
-import { connection } from "next/server";
-import { asc, eq } from "drizzle-orm";
-import { db, schema } from "@/db";
-import { formatPrice } from "@/lib/format";
+import { getCatalog, getCategories, parseFilters } from "@/lib/catalog";
+import { ProductCard } from "@/components/product-card";
 
 export default function HomePage() {
   return (
-    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
-      <section className="overflow-hidden rounded-3xl bg-ink p-8 text-white sm:p-12">
-        <p className="text-sm font-semibold uppercase tracking-widest text-sky">Новинки осени</p>
-        <h1 className="mt-3 max-w-xl text-3xl font-bold leading-tight sm:text-5xl">
+    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
+      <section className="relative overflow-hidden rounded-3xl bg-ink p-8 text-white sm:p-12">
+        <div aria-hidden className="absolute -right-24 -top-24 size-80 rounded-full bg-teal/30 blur-3xl" />
+        <p className="relative text-xs font-semibold uppercase tracking-[0.2em] text-sky">{"// новинки осени"}</p>
+        <h1 className="relative mt-3 max-w-2xl text-3xl font-bold leading-tight sm:text-5xl">
           Техника, которая <span className="text-aqua">работает на вас</span>
         </h1>
-        <p className="mt-4 max-w-lg text-sky">
+        <p className="relative mt-4 max-w-lg text-sm text-sky sm:text-base">
           Официальная гарантия, доставка по Москве за 1 день и статус заказа в реальном времени.
         </p>
+        <form action="/catalog" role="search" className="relative mt-6 flex max-w-md gap-2">
+          <label className="sr-only" htmlFor="hero-search">Поиск</label>
+          <input id="hero-search" name="q" type="search" placeholder="Что ищем?"
+            className="h-11 min-w-0 flex-1 rounded-xl border border-slate bg-deep px-3.5 text-sm text-white placeholder:text-sky/70 outline-none focus:border-aqua" />
+          <button className="h-11 rounded-xl bg-aqua px-5 text-sm font-semibold text-ink hover:bg-sky">Найти</button>
+        </form>
       </section>
 
       <Suspense fallback={<GridSkeleton />}>
-        <Catalog />
+        <Sections />
       </Suspense>
     </main>
   );
 }
 
-async function Catalog() {
-  await connection(); // каталог читаем из БД на каждый запрос (кэш добавим на этапе 2)
-  const categories = await db.query.categories.findMany({
-    orderBy: asc(schema.categories.name),
-    with: {
-      products: {
-        where: eq(schema.products.isActive, true),
-        limit: 4,
-        orderBy: asc(schema.products.price),
-        with: { stock: true },
-      },
-    },
-  });
+async function Sections() {
+  const categories = await getCategories();
+  const sections = await Promise.all(
+    categories.map(async (c) => ({ c, data: await getCatalog(parseFilters({ category: c.slug, stock: "1" })) })),
+  );
 
   return (
     <div className="mt-12 flex flex-col gap-12">
-      {categories.map((cat) => (
-        <section key={cat.id}>
-          <h2 className="text-xl font-bold">{cat.name}</h2>
-          <ul className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
-            {cat.products.map((p) => {
-              const left = (p.stock?.quantity ?? 0) - (p.stock?.reserved ?? 0);
-              return (
-                <li key={p.id} className="flex flex-col rounded-2xl border border-border bg-surface p-4">
-                  <div aria-hidden className="grid aspect-square place-items-center rounded-xl bg-surface-2 text-3xl font-bold text-slate/40">
-                    {p.brand.slice(0, 1)}
-                  </div>
-                  <p className="mt-3 text-xs font-medium uppercase tracking-wide text-muted">{p.brand}</p>
-                  <h3 className="mt-0.5 line-clamp-2 text-sm font-semibold">{p.name}</h3>
-                  <p className="mt-auto pt-3 font-bold">{formatPrice(p.price)}</p>
-                  <p className={`text-xs ${left > 0 ? "text-primary" : "text-danger"}`}>
-                    {left > 0 ? `В наличии: ${left} шт.` : "Нет в наличии"}
-                  </p>
-                </li>
-              );
-            })}
+      {sections.map(({ c, data }) => (
+        <section key={c.id} aria-labelledby={`cat-${c.slug}`}>
+          <div className="flex items-baseline justify-between gap-4">
+            <h2 id={`cat-${c.slug}`} className="text-xl font-bold">{c.name}</h2>
+            <Link href={`/catalog?category=${c.slug}`} className="text-sm font-semibold text-primary hover:text-primary-hover">
+              Смотреть все →
+            </Link>
+          </div>
+          <ul className="mt-4 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+            {data.products.slice(0, 4).map((p) => (
+              <li key={p.id} className="flex">
+                <ProductCard p={p} />
+              </li>
+            ))}
           </ul>
         </section>
       ))}
