@@ -3,16 +3,18 @@
 import { createHash, randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { and, count, eq, gt, isNull } from "drizzle-orm";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { db, schema } from "@/db";
 import { createSession } from "@/lib/session";
+import { appUrl, mailIsReal, sendMail } from "@/lib/mail";
+import { resetPasswordMail } from "@/lib/mail/templates";
+import { recordAuthEvent } from "@/lib/audit";
 import { forgotSchema, resetSchema, type ActionState } from "@/lib/validation";
 
 const TTL_MIN = 30;
 const sha256 = (s: string) => createHash("sha256").update(s).digest("hex");
 
-export type ForgotState = ActionState & { devLink?: string };
+export type ForgotState = ActionState & { devLink?: string; previewUrl?: string };
 
 export async function requestReset(_: ForgotState, fd: FormData): Promise<ForgotState> {
   const parsed = forgotSchema.safeParse({ email: String(fd.get("email") ?? "") });
@@ -42,13 +44,15 @@ export async function requestReset(_: ForgotState, fd: FormData): Promise<Forgot
     expiresAt: new Date(Date.now() + TTL_MIN * 60_000),
   });
 
-  const h = await headers();
-  const origin = `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host")}`;
-  const link = `${origin}/reset-password?token=${token}`;
+  const link = `${appUrl()}/reset-password?token=${token}`;
+  const mail = resetPasswordMail(user.name, link, TTL_MIN);
+  const sent = await sendMail(user.email, mail.subject, mail.html, mail.text);
 
-  // TODO: отправка письма (Resend / SMTP) при деплое. Пока почты нет — в разработке показываем ссылку.
-  console.log(`[reset] ${user.email}: ${link}`);
-  return process.env.NODE_ENV === "production" ? done : { ...done, devLink: link };
+  // Пока SMTP не настроен, в разработке показываем ссылку и превью письма прямо на странице
+  if (!mailIsReal() && process.env.NODE_ENV !== "production") {
+    return { ...done, devLink: link, previewUrl: sent.previewUrl };
+  }
+  return done;
 }
 
 export async function resetPassword(_: ActionState, fd: FormData): Promise<ActionState> {
@@ -73,7 +77,7 @@ export async function resetPassword(_: ActionState, fd: FormData): Promise<Actio
       .update(schema.users)
       .set({ passwordHash: await bcrypt.hash(parsed.data.next, 10) })
       .where(eq(schema.users.id, reset.userId))
-      .returning({ id: schema.users.id, role: schema.users.role });
+      .returning({ id: schema.users.id, role: schema.users.role, email: schema.users.email });
     // гасим все ссылки этого пользователя, не только текущую
     await tx
       .update(schema.passwordResets)
@@ -83,5 +87,6 @@ export async function resetPassword(_: ActionState, fd: FormData): Promise<Actio
   });
 
   await createSession({ userId: user.id, role: user.role });
+  await recordAuthEvent("PASSWORD_RESET", user.email, user.id);
   redirect("/account?reset=1");
 }

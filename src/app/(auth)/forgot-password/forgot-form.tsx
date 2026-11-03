@@ -16,7 +16,15 @@ export function ForgotForm() {
           <p>{state.message}</p>
           {state.devLink ? (
             <div className="rounded-xl border border-dashed border-primary p-3">
-              <p className="text-xs text-muted">Режим разработки: почта не подключена, поэтому ссылка здесь.</p>
+              <p className="text-xs text-muted">
+                Режим разработки: SMTP не настроен, письмо ушло в тестовый ящик.
+                {state.previewUrl ? (
+                  <>
+                    {" "}
+                    <a href={state.previewUrl} target="_blank" rel="noreferrer" className="underline">Посмотреть письмо</a>
+                  </>
+                ) : null}
+              </p>
               <Link href={state.devLink} className="mt-1 block break-all font-semibold text-primary hover:text-primary-hover">
                 Задать новый пароль →
               </Link>

@@ -5,10 +5,10 @@ async function signUp(page: Page) {
   const email = `e2e-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@test.ru`;
   await page.goto("/register");
   await page.waitForLoadState("networkidle");
-  await page.getByLabel("Имя").fill("Тестовый Покупатель");
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Пароль").fill("secret123");
-  await page.getByRole("button", { name: "Создать аккаунт" }).click();
+  await page.getByLabel("Имя").filter({ visible: true }).fill("Тестовый Покупатель");
+  await page.getByLabel("Email").filter({ visible: true }).fill(email);
+  await page.getByLabel("Пароль").filter({ visible: true }).fill("secret123");
+  await page.getByRole("button", { name: "Создать аккаунт" }).filter({ visible: true }).click();
   await page.waitForURL("**/account");
   return email;
 }
@@ -17,22 +17,22 @@ test("профиль: телефон проверяется и сохраняе�
   await signUp(page);
   await page.goto("/account/profile");
   await page.waitForLoadState("networkidle");
-  await page.getByLabel("Телефон").fill("12345");
-  await page.getByRole("button", { name: "Сохранить" }).click();
+  await page.getByLabel("Телефон").filter({ visible: true }).fill("12345");
+  await page.getByRole("button", { name: "Сохранить" }).filter({ visible: true }).click();
   await expect(page.getByText("Номер из 10 цифр после +7")).toBeVisible();
 
-  await page.getByLabel("Телефон").fill("8 (900) 123-45-67");
-  await page.getByRole("button", { name: "Сохранить" }).click();
+  await page.getByLabel("Телефон").filter({ visible: true }).fill("8 (900) 123-45-67");
+  await page.getByRole("button", { name: "Сохранить" }).filter({ visible: true }).click();
   await expect(page.getByRole("status")).toHaveText("✓ Сохранено");
   await page.reload();
-  await expect(page.getByLabel("Телефон")).toHaveValue("+7 (900) 123-45-67");
+  await expect(page.getByLabel("Телефон").filter({ visible: true })).toHaveValue("+7 (900) 123-45-67");
 });
 
 test("телефон: маска подставляет +7 ( при фокусе", async ({ page }) => {
   await signUp(page);
   await page.goto("/account/profile");
   await page.waitForLoadState("networkidle");
-  const phone = page.getByLabel("Телефон");
+  const phone = page.getByLabel("Телефон").filter({ visible: true });
   await phone.click();
   await expect(phone).toHaveValue("+7 (");
   await phone.pressSequentially("9001234567");
@@ -46,9 +46,9 @@ test("адреса: первый становится основным, можн
   await signUp(page);
   await page.goto("/account/addresses");
   await page.waitForLoadState("networkidle");
-  await page.getByLabel("Улица и дом").fill("ул. Тверская, д. 7");
-  await page.getByLabel("Квартира / офис").fill("12");
-  await page.getByRole("button", { name: "Добавить адрес" }).click();
+  await page.getByLabel("Улица и дом").filter({ visible: true }).fill("ул. Тверская, д. 7");
+  await page.getByLabel("Квартира / офис").filter({ visible: true }).fill("12");
+  await page.getByRole("button", { name: "Добавить адрес" }).filter({ visible: true }).click();
   const card = page.locator("li", { hasText: "ул. Тверская, д. 7" });
   await expect(card).toContainText("основной");
   await card.getByRole("button", { name: /Удалить/ }).click();

@@ -94,12 +94,13 @@ async function Cart() {
             <span className="text-2xl font-bold">{formatPrice(cart.total + delivery.courierPrice)}</span>
           </div>
           <p className="mt-1 text-xs text-muted">Курьер привезёт {delivery.courier}</p>
-          <button disabled className="mt-5 h-12 w-full rounded-xl bg-primary text-sm font-semibold text-on-primary opacity-50">
-            Оформить заказ
-          </button>
-          <p className="mt-2 text-center text-xs text-muted">
-            {outOfStock ? "Уберите товары, которых нет в наличии" : "Оформление и оплата — на следующем этапе"}
-          </p>
+          {outOfStock ? (
+            <p className="mt-5 rounded-xl bg-danger/10 px-3 py-2 text-center text-sm text-danger">Уберите товары, которых нет в наличии</p>
+          ) : (
+            <Link href="/checkout" className="mt-5 flex h-12 w-full items-center justify-center rounded-xl bg-primary text-sm font-semibold text-on-primary hover:bg-primary-hover">
+              Оформить заказ
+            </Link>
+          )}
         </aside>
       </div>
     </>

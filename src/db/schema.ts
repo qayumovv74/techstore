@@ -35,6 +35,8 @@ export const paymentStatusEnum = pgEnum("payment_status", [
 
 export const paymentProviderEnum = pgEnum("payment_provider", ["MOCK", "YOOKASSA", "SBP"]);
 
+export const deliveryMethodEnum = pgEnum("delivery_method", ["COURIER", "PICKUP"]);
+
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true })
@@ -125,6 +127,24 @@ export const stock = pgTable("stock", {
   updatedAt: timestamps.updatedAt,
 });
 
+export const authEventEnum = pgEnum("auth_event", ["REGISTER", "LOGIN", "LOGIN_FAILED", "PASSWORD_RESET"]);
+
+/** Журнал входов: когда, откуда и с какого устройства. Видит только админ. */
+export const authEvents = pgTable(
+  "auth_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    type: authEventEnum("type").notNull(),
+    ip: text("ip"),
+    userAgent: text("user_agent"),
+    device: text("device"),
+    createdAt: timestamps.createdAt,
+  },
+  (t) => [index("auth_events_user_idx").on(t.userId), index("auth_events_created_idx").on(t.createdAt)],
+);
+
 /** Ссылки «Забыли пароль?». Храним только хеш токена — утечка таблицы не даст войти. */
 export const passwordResets = pgTable(
   "password_resets",
@@ -183,10 +203,16 @@ export const orders = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "restrict" }),
     status: orderStatusEnum("status").notNull().default("PENDING_PAYMENT"),
+    /** Товары + доставка, в копейках */
     total: integer("total").notNull(),
-    /** Копия адреса на момент заказа */
+    deliveryMethod: deliveryMethodEnum("delivery_method").notNull().default("COURIER"),
+    deliveryPrice: integer("delivery_price").notNull().default(0),
+    contactName: text("contact_name").notNull().default(""),
+    contactPhone: text("contact_phone").notNull().default(""),
+    comment: text("comment"),
+    /** Копия адреса на момент заказа — если пользователь потом изменит адрес, заказ не поменяется */
     addressSnapshot: jsonb("address_snapshot")
-      .$type<{ city: string; street: string; comment?: string; phone: string }>()
+      .$type<{ city: string; street: string; apartment?: string | null; comment?: string | null }>()
       .notNull(),
     reservedUntil: timestamp("reserved_until", { withTimezone: true }),
     ...timestamps,
@@ -211,13 +237,15 @@ export const orderItems = pgTable("order_items", {
 /** Суммы во всех таблицах — в копейках */
 export const payments = pgTable("payments", {
   id: uuid("id").primaryKey().defaultRandom(),
+  // У заказа может быть несколько попыток оплаты: после отказа банка создаём новую
   orderId: uuid("order_id")
     .notNull()
-    .unique()
     .references(() => orders.id, { onDelete: "cascade" }),
   provider: paymentProviderEnum("provider").notNull().default("MOCK"),
   externalId: text("external_id").unique(),
   amount: integer("amount").notNull(),
+  /** Куда отправить покупателя для оплаты (страница шлюза) */
+  payUrl: text("pay_url"),
   status: paymentStatusEnum("status").notNull().default("PENDING"),
   ...timestamps,
 });
@@ -287,7 +315,7 @@ export const cartItemsRelations = relations(cartItems, ({ one }) => ({
 export const ordersRelations = relations(orders, ({ one, many }) => ({
   user: one(users, { fields: [orders.userId], references: [users.id] }),
   items: many(orderItems),
-  payment: one(payments, { fields: [orders.id], references: [payments.orderId] }),
+  payments: many(payments),
   events: many(orderEvents),
 }));
 

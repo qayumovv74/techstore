@@ -29,6 +29,20 @@
       "when": 1793738536329,
       "tag": "0003_image_credits",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793740483530,
+      "tag": "0004_orders_checkout_audit",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793740538158,
+      "tag": "0005_payments_many",
+      "breakpoints": true
     }
   ]
 }

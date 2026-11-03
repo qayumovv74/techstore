@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { db, schema } from "@/db";
 import { createSession, deleteSession } from "@/lib/session";
 import { mergeGuestCart } from "@/lib/cart";
+import { recordAuthEvent } from "@/lib/audit";
 import { loginSchema, registerSchema, type FormState } from "@/lib/validation";
 
 // Хеш-заглушка: проверка пароля идёт одинаково долго, есть пользователь или нет.
@@ -28,11 +29,13 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
   const user = await db.query.users.findFirst({ where: eq(schema.users.email, parsed.data.email) });
   const ok = await bcrypt.compare(parsed.data.password, user?.passwordHash ?? DUMMY_HASH);
   if (!user || !ok) {
+    await recordAuthEvent("LOGIN_FAILED", parsed.data.email, user?.id ?? null);
     return { error: "Неверный email или пароль", values: { email: raw.email } };
   }
 
   await createSession({ userId: user.id, role: user.role });
   await mergeGuestCart(user.id);
+  await recordAuthEvent("LOGIN", user.email, user.id);
   const fallback = user.role === "CUSTOMER" ? "/account" : "/admin";
   redirect(safeNext(formData.get("next"), fallback));
 }
@@ -62,6 +65,7 @@ export async function register(_prev: FormState, formData: FormData): Promise<Fo
 
   await createSession({ userId: user.id, role: user.role });
   await mergeGuestCart(user.id);
+  await recordAuthEvent("REGISTER", parsed.data.email, user.id);
   redirect(safeNext(formData.get("next"), "/account"));
 }
 

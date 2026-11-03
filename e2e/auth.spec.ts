@@ -5,9 +5,9 @@ const PASSWORD = "demo12345";
 async function login(page: import("@playwright/test").Page, email: string, password = PASSWORD) {
   await page.goto("/login");
   await page.waitForLoadState("networkidle");
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Пароль").fill(password);
-  await page.getByRole("button", { name: "Войти" }).last().click();
+  await page.getByLabel("Email").filter({ visible: true }).fill(email);
+  await page.getByLabel("Пароль").filter({ visible: true }).fill(password);
+  await page.getByRole("button", { name: "Войти" }).filter({ visible: true }).last().click();
 }
 
 test("неверный пароль — понятная ошибка", async ({ page }) => {
