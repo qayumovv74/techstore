@@ -1,26 +1,86 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+  Палитра TechStore
+  #05161A — ink (самый тёмный фон)
+  #072E33 — deep (поверхности в тёмной теме)
+  #0C7075 — teal (основной акцент, кнопки)
+  #0F969C — aqua (hover, ссылки, активное)
+  #6DA5C0 — sky (второстепенный текст, иконки)
+  #294D61 — slate (границы, неактивное)
+*/
+
+@theme {
+  --color-ink: #05161a;
+  --color-deep: #072e33;
+  --color-teal: #0c7075;
+  --color-aqua: #0f969c;
+  --color-sky: #6da5c0;
+  --color-slate: #294d61;
+
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Семантические токены: компоненты используют их, а не сырые цвета */
+:root {
+  --bg: #f3f8f9;
+  --surface: #ffffff;
+  --surface-2: #e6f0f2;
+  --text: #05161a;
+  --muted: #294d61;
+  --border: #c9dde3;
+  --primary: #0c7075;
+  --primary-hover: #0f969c;
+  --on-primary: #ffffff;
+  --danger: #b42318;
+  color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:not([data-theme="light"]) {
+    --bg: #05161a;
+    --surface: #072e33;
+    --surface-2: #0a3a40;
+    --text: #e8f3f5;
+    --muted: #6da5c0;
+    --border: #294d61;
+    --primary: #0f969c;
+    --primary-hover: #12aeb5;
+    --on-primary: #05161a;
+    --danger: #f97066;
+    color-scheme: dark;
   }
 }
 
+:root[data-theme="dark"] {
+  --bg: #05161a;
+  --surface: #072e33;
+  --surface-2: #0a3a40;
+  --text: #e8f3f5;
+  --muted: #6da5c0;
+  --border: #294d61;
+  --primary: #0f969c;
+  --primary-hover: #12aeb5;
+  --on-primary: #05161a;
+  --danger: #f97066;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-on-primary: var(--on-primary);
+  --color-danger: var(--danger);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
 }

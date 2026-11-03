@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TechStore
 
-## Getting Started
+Интернет-магазин техники: витрина, корзина, имитация оплаты, админка и обновления в реальном времени.
+Учебный проект для портфолио.
 
-First, run the development server:
+**Стек:** Next.js 16 (App Router, Cache Components) · React 19 · TypeScript · Tailwind CSS 4 · PostgreSQL + Drizzle ORM · свои сессии на JWT (jose + bcrypt) · Zod
+
+## Быстрый старт
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env          # затем поменяй SESSION_SECRET
+npm install
+npm run db:up                 # PostgreSQL и Redis в Docker
+npm run db:migrate            # создать таблицы
+npm run db:seed               # 46 товаров и демо-пользователи
+npm run dev                   # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Демо-доступ (пароль `demo12345`): `admin@techstore.uz`, `manager@techstore.uz`, `user@techstore.uz`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Структура
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+  app/
+    (auth)/        вход, регистрация, server actions
+    account/       кабинет покупателя
+    admin/         админка (MANAGER, ADMIN)
+    page.tsx       главная с каталогом
+  components/      UI-примитивы и шапка
+  db/
+    schema.ts      11 таблиц и связи
+    index.ts       пул соединений
+  lib/
+    auth.ts        Data Access Layer: getCurrentUser, requireRole
+    session.ts     cookie-сессия
+    session-token  подпись/проверка JWT (общая для proxy и сокетов)
+  proxy.ts         быстрая проверка доступа к /account и /admin
+drizzle/           SQL-миграции
+scripts/seed.ts    демо-данные
+```
 
-## Learn More
+## Ключевые решения
 
-To learn more about Next.js, take a look at the following resources:
+- **Безопасность в два слоя.** `proxy.ts` отсекает гостей до рендера, но права ещё раз проверяет каждая страница и Server Action через `lib/auth.ts`.
+- **Цены в сумах целым числом** — без ошибок округления.
+- **Снимки данных в заказе** (`name_at_purchase`, `price_at_purchase`, `address_snapshot`) — смена цены не меняет старые заказы.
+- **Резерв остатков** (`stock.reserved`) — два покупателя не купят последний товар одновременно.
+- **Защита входа:** httpOnly-cookie, `sameSite=lax`, одинаковое время ответа для существующих и несуществующих email, проверка `?next=` от открытых редиректов.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Скрипты
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Команда | Что делает |
+| --- | --- |
+| `npm run dev` | Режим разработки |
+| `npm run build && npm start` | Продакшен-сборка |
+| `npm run db:generate` | Миграция из изменений `schema.ts` |
+| `npm run db:migrate` | Применить миграции |
+| `npm run db:seed` | Залить демо-данные (очищает таблицы) |
+| `npm run db:studio` | Drizzle Studio — просмотр БД в браузере |
 
-## Deploy on Vercel
+## Этапы
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [x] 1. Основа: проект, БД, вход и роли
+- [ ] 2. Каталог: фильтры, поиск, карточка товара
+- [ ] 3. Заказ: корзина, оформление, mock-оплата с вебхуком
+- [ ] 4. Админка: товары, остатки, заказы, дашборд
+- [ ] 5. Realtime (Socket.IO + Redis), тесты, деплой на VPS
