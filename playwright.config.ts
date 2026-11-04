@@ -30,6 +30,7 @@ export default defineConfig({
       NEXT_DIST_DIR: ".next-test",
       APP_URL: `http://localhost:${PORT}`,
       MAIL_TRANSPORT: "json", // письма не отправляются, только пишутся в лог
+      UPLOAD_DIR: "test-results/uploads", // фото из тестов не попадают в рабочую папку
     },
   },
   projects: [
