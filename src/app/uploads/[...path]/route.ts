@@ -6,7 +6,7 @@ const TYPES: Record<string, string> = { ".webp": "image/webp", ".jpg": "image/jp
 
 export async function GET(_req: Request, ctx: RouteContext<"/uploads/[...path]">) {
   const parts = (await ctx.params).path;
-  const file = path.resolve(UPLOAD_DIR, ...parts);
+  const file = path.resolve(/* turbopackIgnore: true */ UPLOAD_DIR, ...parts);
   // защита от ../../etc/passwd
   if (!file.startsWith(UPLOAD_DIR + path.sep)) return new Response("not found", { status: 404 });
   const type = TYPES[path.extname(file).toLowerCase()];

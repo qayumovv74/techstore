@@ -1,0 +1,22 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Запустить сайт (база + dev)",
+      "type": "npm",
+      "script": "go",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "next",
+        "pattern": { "regexp": "^x^" },
+        "background": { "activesBegin": true, "beginsPattern": "next dev", "endsPattern": "Ready in" }
+      },
+      "group": { "kind": "build", "isDefault": true },
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    { "label": "Остановить базу", "type": "npm", "script": "db:local stop", "problemMatcher": [] },
+    { "label": "Автотесты", "type": "npm", "script": "test:e2e", "problemMatcher": [] },
+    { "label": "Проверка кода (lint + типы)", "type": "shell", "command": "npm run lint && npm run typecheck", "problemMatcher": ["$tsc"] },
+    { "label": "Открыть базу в браузере (Drizzle Studio)", "type": "npm", "script": "db:studio", "isBackground": true, "problemMatcher": [] }
+  ]
+}

@@ -6,7 +6,9 @@ import sharp from "sharp";
 
 // Файлы, загруженные через админку, живут вне public/: next start отдаёт public только из сборки.
 // На сервере папка монтируется volume'ом, чтобы фото пережили пересборку контейнера.
-export const UPLOAD_DIR = path.resolve(process.env.UPLOAD_DIR ?? "uploads");
+// turbopackIgnore: без него сборщик видит путь от корня проекта, начинает следить за всеми файлами
+// (dev перезагружается от любой записи на диск) и тащит весь проект в standalone-сборку
+export const UPLOAD_DIR = path.resolve(/* turbopackIgnore: true */ process.cwd(), process.env.UPLOAD_DIR ?? "uploads");
 
 export const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 const ACCEPTED = ["image/jpeg", "image/png", "image/webp", "image/avif"];
@@ -31,7 +33,7 @@ export async function saveProductImage(file: File) {
   }
 
   const name = `${randomUUID()}.webp`;
-  await mkdir(path.join(UPLOAD_DIR, "products"), { recursive: true });
-  await writeFile(path.join(UPLOAD_DIR, "products", name), output);
+  await mkdir(path.join(/* turbopackIgnore: true */ UPLOAD_DIR, "products"), { recursive: true });
+  await writeFile(path.join(/* turbopackIgnore: true */ UPLOAD_DIR, "products", name), output);
   return `/uploads/products/${name}`;
 }

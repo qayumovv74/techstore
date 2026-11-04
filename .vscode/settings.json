@@ -1,0 +1,5 @@
+{
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "files.exclude": { ".next": true, ".next-test": true, ".pgdata": true, ".photos-cache": true },
+  "search.exclude": { "**/node_modules": true, "drizzle/meta": true, "public/products": true }
+}
