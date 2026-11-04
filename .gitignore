@@ -52,3 +52,6 @@ next-env.d.ts
 
 # кэш исходников фото (scripts/photos)
 /.photos-cache/
+
+# фото, загруженные через админку
+/uploads/
