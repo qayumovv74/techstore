@@ -8,7 +8,7 @@ import { requireRole, STAFF_ROLES } from "@/lib/auth";
 import { formatPrice, statusLabel } from "@/lib/format";
 import { msk } from "@/lib/datetime";
 import { releaseExpiredReservations } from "@/lib/orders";
-import { AutoRefresh } from "@/components/auto-refresh";
+import { LiveRefresh } from "@/components/live-refresh";
 import { StatusBadge } from "@/components/order-timeline";
 
 export const metadata: Metadata = { title: "Заказы" };
@@ -36,7 +36,7 @@ async function Orders({ searchParams }: { searchParams: PageProps<"/admin/orders
 
   return (
     <div className="flex flex-col gap-4">
-      <AutoRefresh every={10000} />
+      <LiveRefresh topics={["orders"]} />
       <ul className="flex flex-wrap gap-2">
         <li><Link href="/admin/orders" className={`inline-block rounded-full border px-3 py-1 text-xs ${!filter ? "border-primary text-primary" : "border-border"}`}>Все</Link></li>
         {Object.entries(statusLabel).map(([k, v]) => (

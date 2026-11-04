@@ -10,6 +10,7 @@ import { formatPhone } from "@/lib/validation";
 import { msk } from "@/lib/datetime";
 import { NEXT_STATUSES } from "@/lib/orders";
 import { OrderTimeline, StatusBadge } from "@/components/order-timeline";
+import { LiveRefresh } from "@/components/live-refresh";
 import { setOrderStatus } from "../actions";
 
 export const metadata: Metadata = { title: "Заказ" };
@@ -42,7 +43,10 @@ async function Order({ params }: { params: PageProps<"/admin/orders/[id]">["para
 
   return (
     <div className="flex flex-col gap-5">
-      <Link href="/admin/orders" className="text-sm text-primary hover:text-primary-hover">← Все заказы</Link>
+      <div className="flex items-center justify-between gap-3">
+        <Link href="/admin/orders" className="text-sm text-primary hover:text-primary-hover">← Все заказы</Link>
+        <LiveRefresh topics={["orders"]} />
+      </div>
       <div className="rounded-2xl border border-border bg-surface p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-xl font-bold">Заказ TS-{order.number}</h2>

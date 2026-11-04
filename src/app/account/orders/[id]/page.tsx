@@ -9,7 +9,7 @@ import { formatPrice } from "@/lib/format";
 import { formatPhone } from "@/lib/validation";
 import { msk } from "@/lib/datetime";
 import { pendingPayment, releaseExpiredReservations } from "@/lib/orders";
-import { AutoRefresh } from "@/components/auto-refresh";
+import { LiveRefresh } from "@/components/live-refresh";
 import { OrderTimeline, StatusBadge } from "@/components/order-timeline";
 import { PanelSkeleton } from "../../skeleton";
 import { cancelMyOrder } from "./actions";
@@ -42,8 +42,10 @@ async function Order({ params, searchParams }: PageProps<"/account/orders/[id]">
 
   return (
     <div className="flex flex-col gap-5">
-      {live ? <AutoRefresh /> : null}
-      <Link href="/account/orders" className="text-sm text-primary hover:text-primary-hover">← Все заказы</Link>
+      <div className="flex items-center justify-between gap-3">
+        <Link href="/account/orders" className="text-sm text-primary hover:text-primary-hover">← Все заказы</Link>
+        {live ? <LiveRefresh topics={[`order:${order.id}`]} /> : null}
+      </div>
 
       {paymentResult === "success" && order.status !== "PENDING_PAYMENT" ? (
         <p className="rounded-2xl bg-primary/10 p-4 text-sm font-medium text-primary">Оплата прошла. Письмо с деталями отправили на {user.email}.</p>

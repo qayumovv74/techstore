@@ -5,10 +5,17 @@ import type { OrderStatus } from "@/db/schema";
 import { sendMail } from "@/lib/mail";
 import { orderCreatedMail, orderPaidMail, orderStatusMail } from "@/lib/mail/templates";
 import { createPayment } from "@/lib/payments/mock";
+import { CHANNEL } from "@/lib/realtime";
 
 export const RESERVE_MINUTES = 15;
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+/** Событие для живых обновлений. NOTIFY внутри транзакции уходит только после commit. */
+async function publish(tx: Tx, order: { id: string; userId: string }, status: OrderStatus) {
+  const payload = JSON.stringify({ topic: "orders", orderId: order.id, userId: order.userId, status });
+  await tx.execute(sql`select pg_notify(${CHANNEL}, ${payload})`);
+}
 
 /** Куда можно перевести заказ вручную (менеджер/админ). В «Оплачен» — только через платёж. */
 export const NEXT_STATUSES: Record<OrderStatus, OrderStatus[]> = {
@@ -102,6 +109,7 @@ export async function placeOrder(input: PlaceOrderInput) {
     await tx.insert(schema.payments).values({ orderId: order.id, amount: total, ...payment });
     await tx.insert(schema.orderEvents).values({ orderId: order.id, toStatus: "PENDING_PAYMENT", actorId: input.userId });
     await tx.delete(schema.cartItems).where(eq(schema.cartItems.userId, input.userId));
+    await publish(tx, order, "PENDING_PAYMENT");
 
     return { order, items, payUrl: payment.payUrl };
   });
@@ -147,6 +155,7 @@ async function cancelInTx(tx: Tx, orderId: string, actorId: string | null, expec
     .where(and(eq(schema.payments.orderId, orderId), eq(schema.payments.status, wasPaid ? "PAID" : "PENDING")));
   await tx.update(schema.orders).set({ status: "CANCELLED", reservedUntil: null }).where(eq(schema.orders.id, orderId));
   await tx.insert(schema.orderEvents).values({ orderId, fromStatus: order.status, toStatus: "CANCELLED", actorId });
+  await publish(tx, order, "CANCELLED");
   return true;
 }
 
@@ -158,6 +167,7 @@ export async function changeStatus(orderId: string, to: OrderStatus, actorId: st
     if (!order || !NEXT_STATUSES[order.status].includes(to)) return false;
     await tx.update(schema.orders).set({ status: to }).where(eq(schema.orders.id, orderId));
     await tx.insert(schema.orderEvents).values({ orderId, fromStatus: order.status, toStatus: to, actorId });
+    await publish(tx, order, to);
     return true;
   });
   if (changed) void notify(orderId, "status");
@@ -182,6 +192,7 @@ export async function applyPaymentResult(externalId: string, amount: number, suc
       await tx.update(schema.payments).set({ status: "FAILED" }).where(eq(schema.payments.id, payment.id));
       const retry = createPayment();
       await tx.insert(schema.payments).values({ orderId: order.id, amount: payment.amount, ...retry }).onConflictDoNothing();
+      await publish(tx, order, order.status);
       return "failed" as const;
     }
 
@@ -204,6 +215,7 @@ export async function applyPaymentResult(externalId: string, amount: number, suc
     await tx.update(schema.payments).set({ status: "PAID" }).where(eq(schema.payments.id, payment.id));
     await tx.update(schema.orders).set({ status: "PAID", reservedUntil: null }).where(eq(schema.orders.id, order.id));
     await tx.insert(schema.orderEvents).values({ orderId: order.id, fromStatus: "PENDING_PAYMENT", toStatus: "PAID" });
+    await publish(tx, order, "PAID");
     return { paidOrderId: order.id };
   });
 

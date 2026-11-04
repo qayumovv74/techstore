@@ -45,6 +45,7 @@ test("заказ → оплата → менеджер меняет статус
   await pay(page, "4242424242424242");
   await expect(page.getByText("Оплата прошла")).toBeVisible();
   await expect(page.locator("main").getByText("Оплачен").first()).toBeVisible();
+  await expect(page.getByText("обновляется в реальном времени")).toBeVisible();
   const orderUrl = page.url().split("?")[0];
   const number = (await page.getByRole("heading", { name: /Заказ TS-/ }).textContent())!.replace("Заказ ", "");
 
@@ -58,14 +59,14 @@ test("заказ → оплата → менеджер меняет статус
   await staff.waitForURL("**/admin");
   await staff.goto("/admin/orders?status=PAID");
   await staff.getByRole("link", { name: number }).click();
-  await staff.waitForLoadState("networkidle");
+  // на страницах с живыми обновлениями соединение SSE открыто всегда — networkidle там не наступит
   await staff.getByRole("button", { name: "→ Собирается" }).filter({ visible: true }).click();
   await expect(staff.getByRole("button", { name: "→ В доставке" }).filter({ visible: true })).toBeVisible();
   await staff.close();
 
-  // покупатель видит новый статус без перезагрузки (автообновление)
-  await page.goto(orderUrl);
-  await expect(page.locator("main").getByText("Собирается").first()).toBeVisible({ timeout: 15000 });
+  // покупатель видит новый статус без перезагрузки — пришло событие по SSE
+  expect(page.url().split("?")[0]).toBe(orderUrl);
+  await expect(page.locator("main").getByText("Собирается").filter({ visible: true }).first()).toBeVisible({ timeout: 8000 });
 });
 
 test("банк отказал → заказ ждёт оплаты, повторная оплата проходит", async ({ page, isMobile }) => {
@@ -76,7 +77,8 @@ test("банк отказал → заказ ждёт оплаты, повтор
   await expect(page.getByText("Банк отклонил платёж")).toBeVisible();
   await page.getByRole("link", { name: /Оплатить/ }).click();
   await page.waitForURL(/\/mock-pay\//);
-  await page.waitForLoadState("networkidle");
+  await page.waitForLoadState("load");
+  await page.waitForTimeout(500); // даём форме гидрироваться
   await pay(page, "4242424242424242");
   await expect(page.getByText("Оплата прошла")).toBeVisible();
 });
