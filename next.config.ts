@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Тесты поднимают второй сервер на своей базе — ему нужна своя папка сборки
+  distDir: process.env.NEXT_DIST_DIR ?? ".next",
+  // Фото товаров, загруженные через админку, отдаём как есть
+  images: { localPatterns: [{ pathname: "/products/**" }, { pathname: "/uploads/**" }, { pathname: "/brand/**" }] },
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {

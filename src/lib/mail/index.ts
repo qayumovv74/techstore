@@ -14,6 +14,12 @@ let isTest = false;
 async function getTransport() {
   if (transporter) return transporter;
 
+  // Автотесты: письмо собирается, но никуда не уходит
+  if (process.env.MAIL_TRANSPORT === "json") {
+    transporter = nodemailer.createTransport({ jsonTransport: true });
+    return transporter;
+  }
+
   if (process.env.SMTP_HOST && process.env.SMTP_USER) {
     const port = Number(process.env.SMTP_PORT ?? 465);
     transporter = nodemailer.createTransport({
