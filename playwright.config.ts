@@ -13,6 +13,7 @@ export default defineConfig({
   testDir: "./e2e",
   timeout: 60_000,
   fullyParallel: true,
+  workers: process.env.CI ? undefined : 2, // dev-сервер на Windows не тянет больше без таймаутов
   reporter: [["list"]],
   globalSetup: "./e2e/global-setup.ts",
   use: {
@@ -29,6 +30,7 @@ export default defineConfig({
       DATABASE_URL: TEST_DB,
       NEXT_DIST_DIR: ".next-test",
       APP_URL: `http://localhost:${PORT}`,
+      LAN_LINKS: "0", // в письмах localhost, а не адрес в сети
       MAIL_TRANSPORT: "json", // письма не отправляются, только пишутся в лог
       UPLOAD_DIR: "test-results/uploads", // фото из тестов не попадают в рабочую папку
     },

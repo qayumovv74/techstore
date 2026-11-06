@@ -1,5 +1,6 @@
 import "server-only";
 import nodemailer, { type Transporter } from "nodemailer";
+import { lanAddresses } from "@/lib/lan";
 
 /**
  * Почта.
@@ -45,7 +46,8 @@ async function getTransport() {
   return transporter;
 }
 
-export const mailIsReal = () => Boolean(process.env.SMTP_HOST && process.env.SMTP_USER);
+export const mailIsReal = () =>
+  process.env.MAIL_TRANSPORT !== "json" && Boolean(process.env.SMTP_HOST && process.env.SMTP_USER);
 
 export async function sendMail(to: string, subject: string, html: string, text: string): Promise<Sent> {
   try {
@@ -62,6 +64,16 @@ export async function sendMail(to: string, subject: string, html: string, text: 
   }
 }
 
+/**
+ * Адрес сайта для ссылок в письмах. В проде — APP_URL (домен).
+ * В разработке localhost с телефона не откроется, поэтому подставляем адрес компьютера
+ * в домашней сети: ссылка из письма откроется на любом устройстве в том же Wi-Fi.
+ */
 export function appUrl() {
-  return (process.env.APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
+  const url = new URL(process.env.APP_URL ?? "http://localhost:3000");
+  if (process.env.NODE_ENV !== "production" && process.env.LAN_LINKS !== "0" && ["localhost", "127.0.0.1"].includes(url.hostname)) {
+    const [ip] = lanAddresses();
+    if (ip) url.hostname = ip;
+  }
+  return url.origin;
 }

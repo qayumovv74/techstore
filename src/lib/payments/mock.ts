@@ -1,6 +1,5 @@
 import "server-only";
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
-import { appUrl } from "@/lib/mail";
 
 /**
  * Тестовый платёжный шлюз. Устроен как настоящие (ЮKassa, CloudPayments):
@@ -39,7 +38,7 @@ export function verify(body: string, signature: string | null) {
 /** Шлюз → магазин. В реальности это запрос с серверов платёжной системы. */
 export async function sendWebhook(payload: WebhookPayload) {
   const body = JSON.stringify(payload);
-  const res = await fetch(`${appUrl()}/api/payments/webhook`, {
+  const res = await fetch(`${process.env.APP_URL ?? "http://localhost:3000"}/api/payments/webhook`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "X-Signature": sign(body) },
     body,

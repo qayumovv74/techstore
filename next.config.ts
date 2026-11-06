@@ -1,8 +1,11 @@
 import type { NextConfig } from "next";
+import { lanAddresses } from "./src/lib/lan";
 
 const nextConfig: NextConfig = {
   // Тесты поднимают второй сервер на своей базе — ему нужна своя папка сборки
   distDir: process.env.NEXT_DIST_DIR ?? ".next",
+  // разрешаем открывать dev-сервер с телефона по адресу компьютера в домашней сети
+  allowedDevOrigins: lanAddresses(),
   // В Docker собираем автономный сервер: в образ попадает только нужное из node_modules
   output: process.env.BUILD_STANDALONE ? "standalone" : undefined,
   // роут /uploads читает файлы по динамическому пути, и трассировка тянет в сборку весь проект — исходники там не нужны

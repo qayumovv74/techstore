@@ -10,7 +10,7 @@
       "problemMatcher": {
         "owner": "next",
         "pattern": { "regexp": "^__never_matches__(.*)$", "message": 1 },
-        "background": { "activesBegin": true, "beginsPattern": "db:local", "endsPattern": "Ready in" }
+        "background": { "activeOnStart": true, "beginsPattern": "db:local", "endsPattern": "Ready in" }
       },
       "group": { "kind": "build", "isDefault": true },
       "presentation": { "reveal": "always", "panel": "dedicated" }
@@ -41,7 +41,7 @@
       "problemMatcher": {
         "owner": "drizzle",
         "pattern": { "regexp": "^__never_matches__(.*)$", "message": 1 },
-        "background": { "activesBegin": true, "beginsPattern": "drizzle-kit", "endsPattern": "local.drizzle.studio" }
+        "background": { "activeOnStart": true, "beginsPattern": "drizzle-kit", "endsPattern": "local.drizzle.studio" }
       }
     }
   ]
