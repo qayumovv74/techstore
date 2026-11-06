@@ -25,7 +25,7 @@ npm run dev                   # http://localhost:3000
 
 ## Запуск в VS Code
 
-Открой папку проекта (`File → Open Folder…`) и нажми **Ctrl+Shift+B** — запустятся база и сайт, в терминале появится ссылка http://localhost:3000. Остальные команды — в `Terminal → Run Task…`: остановить базу, автотесты, проверка кода, Drizzle Studio. Для отладки с точками остановки — вкладка **Run and Debug** (Ctrl+Shift+D) → «Сайт: отладка сервера».
+Открой папку проекта (`File → Open Folder…`) и нажми **Ctrl+Shift+B** — запустятся база и сайт, в терминале появится ссылка http://localhost:3000. Остальные команды — в `Terminal → Run Task…`: остановить базу (`npm run db:stop`), автотесты, проверка кода, Drizzle Studio. Для отладки с точками остановки — вкладка **Run and Debug** (Ctrl+Shift+D) → «Сайт: отладка сервера».
 
 ## Структура
 

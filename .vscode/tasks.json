@@ -1,4 +1,5 @@
 {
+  // Задачи VS Code: Terminal → Run Task… (Ctrl+Shift+B — запуск сайта)
   "version": "2.0.0",
   "tasks": [
     {
@@ -8,15 +9,40 @@
       "isBackground": true,
       "problemMatcher": {
         "owner": "next",
-        "pattern": { "regexp": "^x^" },
-        "background": { "activesBegin": true, "beginsPattern": "next dev", "endsPattern": "Ready in" }
+        "pattern": { "regexp": "^__never_matches__(.*)$", "message": 1 },
+        "background": { "activesBegin": true, "beginsPattern": "db:local", "endsPattern": "Ready in" }
       },
       "group": { "kind": "build", "isDefault": true },
       "presentation": { "reveal": "always", "panel": "dedicated" }
     },
-    { "label": "Остановить базу", "type": "npm", "script": "db:local stop", "problemMatcher": [] },
-    { "label": "Автотесты", "type": "npm", "script": "test:e2e", "problemMatcher": [] },
-    { "label": "Проверка кода (lint + типы)", "type": "shell", "command": "npm run lint && npm run typecheck", "problemMatcher": ["$tsc"] },
-    { "label": "Открыть базу в браузере (Drizzle Studio)", "type": "npm", "script": "db:studio", "isBackground": true, "problemMatcher": [] }
+    {
+      "label": "Остановить базу",
+      "type": "npm",
+      "script": "db:stop",
+      "problemMatcher": []
+    },
+    {
+      "label": "Автотесты",
+      "type": "npm",
+      "script": "test:e2e",
+      "problemMatcher": []
+    },
+    {
+      "label": "Проверка кода (lint + типы)",
+      "type": "npm",
+      "script": "check",
+      "problemMatcher": ["$tsc", "$eslint-stylish"]
+    },
+    {
+      "label": "Открыть базу в браузере (Drizzle Studio)",
+      "type": "npm",
+      "script": "db:studio",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "drizzle",
+        "pattern": { "regexp": "^__never_matches__(.*)$", "message": 1 },
+        "background": { "activesBegin": true, "beginsPattern": "drizzle-kit", "endsPattern": "local.drizzle.studio" }
+      }
+    }
   ]
 }
