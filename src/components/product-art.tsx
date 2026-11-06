@@ -6,7 +6,7 @@ type Props = { category: string; brand: string; className?: string };
 
 export function ProductArt({ category, brand, className }: Props) {
   return (
-    <div className={`relative grid place-items-center overflow-hidden bg-surface-2 ${className ?? ""}`}>
+    <div className={`relative grid place-items-center overflow-hidden bg-[radial-gradient(circle_at_50%_35%,#1b1748_0%,#0b0a22_100%)] ${className ?? ""}`}>
       <svg viewBox="0 0 120 120" className="h-3/5 w-3/5" aria-hidden fill="none" strokeLinecap="round" strokeLinejoin="round">
         <Device category={category} />
       </svg>
@@ -18,14 +18,14 @@ export function ProductArt({ category, brand, className }: Props) {
 }
 
 function Device({ category }: { category: string }) {
-  const body = { fill: "var(--color-teal)", fillOpacity: 0.12, stroke: "var(--color-teal)", strokeWidth: 3 };
-  const line = { stroke: "var(--color-aqua)", strokeWidth: 3 };
+  const body = { fill: "var(--color-violet)", fillOpacity: 0.12, stroke: "var(--color-violet)", strokeWidth: 3 };
+  const line = { stroke: "var(--color-lilac)", strokeWidth: 3 };
   switch (category) {
     case "smartphones":
       return (
         <>
           <rect x="36" y="10" width="48" height="100" rx="10" {...body} />
-          <rect x="52" y="17" width="16" height="4" rx="2" fill="var(--color-aqua)" />
+          <rect x="52" y="17" width="16" height="4" rx="2" fill="var(--color-lilac)" />
           <path d="M48 96h24" {...line} />
         </>
       );
@@ -40,7 +40,7 @@ function Device({ category }: { category: string }) {
     case "audio":
       return (
         <>
-          <path d="M24 70V58a36 36 0 0 1 72 0v12" stroke="var(--color-teal)" strokeWidth="5" />
+          <path d="M24 70V58a36 36 0 0 1 72 0v12" stroke="var(--color-violet)" strokeWidth="5" />
           <rect x="16" y="64" width="20" height="36" rx="8" {...body} />
           <rect x="84" y="64" width="20" height="36" rx="8" {...body} />
         </>
@@ -49,7 +49,7 @@ function Device({ category }: { category: string }) {
       return (
         <>
           <rect x="20" y="14" width="80" height="92" rx="10" {...body} />
-          <circle cx="60" cy="98" r="2.5" fill="var(--color-aqua)" />
+          <circle cx="60" cy="98" r="2.5" fill="var(--color-lilac)" />
         </>
       );
     case "wearables":

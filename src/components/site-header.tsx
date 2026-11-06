@@ -8,24 +8,29 @@ import { CityPicker } from "./city-picker";
 import { getCity } from "@/lib/city";
 import { deliveryInfo } from "@/data/cities";
 import { getCartCount } from "@/lib/cart";
-import { IconCart, IconGrid, IconHeart, IconSearch, IconUser } from "./icons";
+import { IconGrid, IconSearch } from "./icons";
 import { Logo } from "./logo";
+import { MainNav } from "./main-nav";
+import { buttonVariants } from "./ui/button-variants";
+
+const searchInput =
+  "h-11 w-full rounded-full border border-border bg-text/5 pl-11 pr-4 text-sm outline-none transition-colors placeholder:text-muted/70 focus:border-violet/70 focus:bg-violet/10";
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-20 border-b border-border bg-bg/90 backdrop-blur">
-      <div className="hidden border-b border-border/60 text-xs text-muted md:block">
+    <header className="sticky top-0 z-30 border-b border-white/5 bg-ink/55 backdrop-blur-xl">
+      <div className="hidden border-b border-white/5 text-xs text-muted md:block">
         <div className="mx-auto flex h-9 max-w-6xl items-center gap-6 px-4">
           <Suspense fallback={<span className="font-medium text-text">Москва</span>}>
             <CityBar />
           </Suspense>
-          <Link href="/installment" className="hover:text-primary">Рассрочка 0-0-12</Link>
-          <Link href="/contacts" className="ml-auto hover:text-primary">Пн–Вс 9:00–21:00 · Контакты</Link>
+          <Link href="/installment" className="hover:text-lilac">Рассрочка 0-0-12</Link>
+          <Link href="/contacts" className="ml-auto hover:text-lilac">Пн–Вс 9:00–21:00 · Контакты</Link>
         </div>
       </div>
 
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 md:h-[72px] md:gap-4">
-        <Logo className="h-7 md:h-9" />
+      <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 md:h-[76px] md:gap-4">
+        <Logo className="h-7 md:h-8" />
 
         <div className="hidden md:block">
           <Suspense fallback={<CatalogFallback />}>
@@ -35,13 +40,12 @@ export function SiteHeader() {
 
         <form action="/catalog" role="search" className="relative hidden flex-1 md:block">
           <label className="sr-only" htmlFor="site-search">Поиск по каталогу</label>
-          <IconSearch className="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-muted" />
-          <input id="site-search" name="q" type="search" placeholder="Поиск: iPhone, наушники, ноутбук…"
-            className="h-11 w-full rounded-xl border border-border bg-surface pl-11 pr-3.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/25" />
+          <IconSearch className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted" />
+          <input id="site-search" name="q" type="search" placeholder="Поиск: iPhone, наушники, ноутбук…" className={searchInput} />
         </form>
 
         <div className="ml-auto md:ml-0">
-          <Suspense fallback={<div className="h-11 w-48 animate-pulse rounded-xl bg-surface-2" />}>
+          <Suspense fallback={<NavFallback />}>
             <UserArea />
           </Suspense>
         </div>
@@ -54,9 +58,8 @@ export function SiteHeader() {
       </div>
       <form action="/catalog" role="search" className="relative px-4 pb-3 md:hidden">
         <label className="sr-only" htmlFor="site-search-mobile">Поиск по каталогу</label>
-        <IconSearch className="pointer-events-none absolute left-7 top-[calc(50%-6px)] size-5 -translate-y-1/2 text-muted" />
-        <input id="site-search-mobile" name="q" type="search" placeholder="Поиск по каталогу"
-          className="h-11 w-full rounded-xl border border-border bg-surface pl-11 pr-3.5 text-sm outline-none focus:border-primary" />
+        <IconSearch className="pointer-events-none absolute left-8 top-[calc(50%-6px)] size-5 -translate-y-1/2 text-muted" />
+        <input id="site-search-mobile" name="q" type="search" placeholder="Поиск по каталогу" className={searchInput} />
       </form>
     </header>
   );
@@ -68,7 +71,7 @@ async function CityBar() {
   return (
     <>
       <CityPicker city={city} />
-      <Link href="/delivery" className="hover:text-primary">
+      <Link href="/delivery" className="hover:text-lilac">
         Доставка {d.courier} · Самовывоз {d.pickup}
       </Link>
     </>
@@ -77,7 +80,7 @@ async function CityBar() {
 
 function CatalogFallback() {
   return (
-    <Link href="/catalog" className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-on-primary">
+    <Link href="/catalog" className={buttonVariants({ className: "font-semibold" })}>
       <IconGrid className="size-5" /> Каталог
     </Link>
   );
@@ -93,17 +96,11 @@ async function CatalogButton() {
   return <CatalogMenu categories={rows} />;
 }
 
-function HeaderIcon({ href, label, badge, children }: { href: string; label: string; badge?: number; children: React.ReactNode }) {
+function NavFallback() {
   return (
-    <Link href={href} className="relative flex flex-col items-center gap-0.5 rounded-xl px-2 py-1 text-[11px] text-muted hover:text-primary">
-      {children}
-      <span className="hidden md:block">{label}</span>
-      {badge ? (
-        <span className="absolute -top-0.5 right-0 grid min-w-5 place-items-center rounded-full bg-danger px-1 text-[10px] font-bold leading-5 text-white">
-          {badge > 99 ? "99+" : badge}
-        </span>
-      ) : null}
-    </Link>
+    <div className="hidden md:block">
+      <MainNav variant="desktop" userName={null} favCount={0} cartCount={0} />
+    </div>
   );
 }
 
@@ -115,25 +112,18 @@ async function UserArea() {
       : 0,
     getCartCount(),
   ]);
+  const staff = user && STAFF_ROLES.includes(user.role);
 
   return (
-    <div className="flex items-center gap-1 md:gap-2">
-      <div className="hidden items-center gap-1 md:flex">
-        {user && STAFF_ROLES.includes(user.role) ? (
-          <Link href="/admin" className="mr-2 rounded-lg border border-primary px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary hover:text-on-primary">
-            Админка
-          </Link>
-        ) : null}
-        <HeaderIcon href="/account/favorites" label="Избранное" badge={favCount}>
-          <IconHeart className="size-6" />
-        </HeaderIcon>
-        <HeaderIcon href="/cart" label="Корзина" badge={cartCount}>
-          <IconCart className="size-6" />
-        </HeaderIcon>
+    <div className="flex items-center gap-2">
+      {staff ? (
+        <Link href="/admin" className={buttonVariants({ variant: "outline", size: "sm", className: "rounded-full border-violet/60 text-lilac" })}>
+          Админка
+        </Link>
+      ) : null}
+      <div className="hidden md:block">
+        <MainNav variant="desktop" userName={user?.name ?? null} favCount={favCount} cartCount={cartCount} />
       </div>
-      <HeaderIcon href={user ? "/account" : "/login"} label={user ? user.name.split(" ")[0] : "Войти"}>
-        <IconUser className="size-6" />
-      </HeaderIcon>
     </div>
   );
 }

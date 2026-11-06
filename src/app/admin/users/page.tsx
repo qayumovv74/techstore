@@ -7,6 +7,7 @@ import { requireRole } from "@/lib/auth";
 import { roleLabel } from "@/lib/format";
 import { msk } from "@/lib/datetime";
 import { changeRole } from "./actions";
+import { Button } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Пользователи" };
 
@@ -55,7 +56,7 @@ async function Users({ searchParams }: { searchParams: PageProps<"/admin/users">
       <form className="flex max-w-md gap-2">
         <input name="q" defaultValue={query} placeholder="Имя или email" aria-label="Поиск пользователя"
           className="h-10 flex-1 rounded-xl border border-border bg-surface px-3 text-sm outline-none focus:border-primary" />
-        <button className="h-10 rounded-xl border border-border px-4 text-sm hover:bg-surface-2">Найти</button>
+        <Button variant="outline" className="h-10 font-normal">Найти</Button>
       </form>
 
       <div className="overflow-x-auto rounded-2xl border border-border bg-surface">
@@ -97,7 +98,7 @@ async function Users({ searchParams }: { searchParams: PageProps<"/admin/users">
                         className="h-9 rounded-lg border border-border bg-bg px-2 text-sm">
                         {Object.entries(roleLabel).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                       </select>
-                      <button className="h-9 rounded-lg border border-border px-3 text-xs hover:bg-surface-2">OK</button>
+                      <Button variant="outline" size="sm" className="h-9 px-3">OK</Button>
                     </form>
                   )}
                 </td>

@@ -39,7 +39,7 @@ async function User({ params }: { params: PageProps<"/admin/users/[id]">["params
 
   return (
     <div className="flex flex-col gap-6">
-      <Link href="/admin/users" className="text-sm text-primary hover:text-primary-hover">← Все пользователи</Link>
+      <Link href="/admin/users" className="text-sm text-lilac hover:text-white">← Все пользователи</Link>
       <div className="rounded-2xl border border-border bg-surface p-5">
         <p className="text-xl font-bold">{user.name}</p>
         <p className="mt-1 text-sm text-muted">

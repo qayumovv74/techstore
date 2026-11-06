@@ -13,6 +13,7 @@ import { LiveRefresh } from "@/components/live-refresh";
 import { OrderTimeline, StatusBadge } from "@/components/order-timeline";
 import { PanelSkeleton } from "../../skeleton";
 import { cancelMyOrder } from "./actions";
+import { buttonVariants } from "@/components/ui/button-variants";
 
 export const metadata: Metadata = { title: "Заказ" };
 
@@ -43,7 +44,7 @@ async function Order({ params, searchParams }: PageProps<"/account/orders/[id]">
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between gap-3">
-        <Link href="/account/orders" className="text-sm text-primary hover:text-primary-hover">← Все заказы</Link>
+        <Link href="/account/orders" className="text-sm text-lilac hover:text-white">← Все заказы</Link>
         {live ? <LiveRefresh topics={[`order:${order.id}`]} /> : null}
       </div>
 
@@ -68,7 +69,7 @@ async function Order({ params, searchParams }: PageProps<"/account/orders/[id]">
 
         {payment ? (
           <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-border pt-5">
-            <Link href={payment.payUrl ?? "#"} className="inline-flex h-11 items-center rounded-xl bg-primary px-6 text-sm font-semibold text-on-primary hover:bg-primary-hover">
+            <Link href={payment.payUrl ?? "#"} className={buttonVariants({ className: "px-6 font-semibold" })}>
               Оплатить {formatPrice(order.total)}
             </Link>
             {order.reservedUntil ? (

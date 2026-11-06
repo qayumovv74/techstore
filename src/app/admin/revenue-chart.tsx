@@ -23,7 +23,7 @@ export function RevenueChart({ data }: { data: { day: string; revenue: number; o
             <g key={d.day}>
               <title>{`${short(d.day)}: ${formatPrice(d.revenue)}, заказов: ${d.orders}`}</title>
               <rect x={x} y={H - Math.max(h, d.revenue ? 2 : 0)} width={bw * 0.64} height={Math.max(h, d.revenue ? 2 : 0)} rx="4"
-                fill={today ? "var(--primary)" : "var(--color-sky)"} />
+                fill={today ? "var(--primary)" : "var(--color-lilac)"} />
               {i % 2 === data.length % 2 || today ? (
                 <text x={x + bw * 0.32} y={H + 16} textAnchor="middle" fontSize="11" fill="var(--muted)">{short(d.day)}</text>
               ) : null}

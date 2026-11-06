@@ -1,22 +1,25 @@
 @import "tailwindcss";
 
+/* dark: всегда включён — сайт тёмный, фон Silk */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /*
-  Палитра TechStore
-  #05161A — ink (самый тёмный фон)
-  #072E33 — deep (поверхности в тёмной теме)
-  #0C7075 — teal (основной акцент, кнопки)
-  #0F969C — aqua (hover, ссылки, активное)
-  #6DA5C0 — sky (второстепенный текст, иконки)
-  #294D61 — slate (границы, неактивное)
+  Палитра TechStore — «ночной шёлк»
+  #02010A — ink     (самый тёмный, низ шейдера)
+  #04052E — night   (глубокий синий)
+  #3D2C8D — indigo  (тени, бордеры на hover)
+  #916BBF — violet  (основной акцент: кнопки, ссылки)
+  #C4B5E8 — lilac   (светлый акцент, второстепенный текст на тёмном)
+  #2A2560 — haze    (границы, неактивное)
 */
 
 @theme {
-  --color-ink: #05161a;
-  --color-deep: #072e33;
-  --color-teal: #0c7075;
-  --color-aqua: #0f969c;
-  --color-sky: #6da5c0;
-  --color-slate: #294d61;
+  --color-ink: #02010a;
+  --color-night: #04052e;
+  --color-indigo: #3d2c8d;
+  --color-violet: #916bbf;
+  --color-lilac: #c4b5e8;
+  --color-haze: #2a2560;
 
   --font-mono: "JetBrains Mono Variable", ui-monospace, "Cascadia Code", Consolas, monospace;
   --font-sans: var(--font-mono);
@@ -24,52 +27,24 @@
 
 /* Семантические токены: компоненты используют их, а не сырые цвета */
 :root {
-  --bg: #f3f8f9;
-  --surface: #ffffff;
-  --surface-2: #e6f0f2;
-  --text: #05161a;
-  --muted: #294d61;
-  --border: #c9dde3;
-  --primary: #0c7075;
-  --primary-hover: #0f969c;
-  --on-primary: #ffffff;
-  --danger: #b42318;
-  color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #05161a;
-    --surface: #072e33;
-    --surface-2: #0a3a40;
-    --text: #e8f3f5;
-    --muted: #6da5c0;
-    --border: #294d61;
-    --primary: #0f969c;
-    --primary-hover: #12aeb5;
-    --on-primary: #05161a;
-    --danger: #f97066;
-    color-scheme: dark;
-  }
-}
-
-:root[data-theme="dark"] {
-  --bg: #05161a;
-  --surface: #072e33;
-  --surface-2: #0a3a40;
-  --text: #e8f3f5;
-  --muted: #6da5c0;
-  --border: #294d61;
-  --primary: #0f969c;
-  --primary-hover: #12aeb5;
-  --on-primary: #05161a;
-  --danger: #f97066;
+  --bg: #02010a;
+  --surface: #0b0a22;
+  --surface-glass: rgb(10 9 34 / 0.72);
+  --surface-2: #16133a;
+  --text: #efeaff;
+  --muted: #a79bcf;
+  --border: #2b2660;
+  --primary: #916bbf;
+  --primary-hover: #a98ad6;
+  --on-primary: #0b0820;
+  --danger: #ff6b81;
   color-scheme: dark;
 }
 
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
+  --color-glass: var(--surface-glass);
   --color-surface-2: var(--surface-2);
   --color-text: var(--text);
   --color-muted: var(--muted);
@@ -90,4 +65,135 @@ body {
 /* Моноширинный шрифт широкий — чуть плотнее заголовки */
 h1, h2, h3 {
   letter-spacing: -0.02em;
+}
+
+::selection {
+  background: rgb(145 107 191 / 0.45);
+}
+
+/* ─── Появление элементов (страницы входа и регистрации) ─────────── */
+@keyframes fadeSlideIn {
+  to { opacity: 1; filter: blur(0px); transform: translateY(0px); }
+}
+@keyframes slideRightIn {
+  to { opacity: 1; filter: blur(0px); transform: translateX(0px); }
+}
+@keyframes testimonialIn {
+  to { opacity: 1; filter: blur(0px); transform: translateY(0px) scale(1); }
+}
+
+.animate-element {
+  opacity: 0;
+  filter: blur(4px);
+  transform: translateY(12px);
+  animation: fadeSlideIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.animate-slide-right {
+  opacity: 0;
+  filter: blur(6px);
+  transform: translateX(32px);
+  animation: slideRightIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.animate-testimonial {
+  opacity: 0;
+  filter: blur(4px);
+  transform: translateY(16px) scale(0.96);
+  animation: testimonialIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.animate-delay-100 { animation-delay: 0.1s; }
+.animate-delay-200 { animation-delay: 0.2s; }
+.animate-delay-300 { animation-delay: 0.3s; }
+.animate-delay-400 { animation-delay: 0.4s; }
+.animate-delay-500 { animation-delay: 0.5s; }
+.animate-delay-600 { animation-delay: 0.6s; }
+.animate-delay-700 { animation-delay: 0.7s; }
+.animate-delay-800 { animation-delay: 0.8s; }
+.animate-delay-900 { animation-delay: 0.9s; }
+.animate-delay-1000 { animation-delay: 1s; }
+.animate-delay-1200 { animation-delay: 1.2s; }
+.animate-delay-1400 { animation-delay: 1.4s; }
+
+/* Переливающийся текст в заголовке главной */
+.shimmer-text {
+  background: linear-gradient(100deg, var(--color-lilac) 0%, #fff 22%, var(--color-violet) 45%, var(--color-lilac) 70%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 6s linear infinite;
+}
+@keyframes shimmer {
+  to { background-position: -220% 0; }
+}
+
+/* ─── Подсветка карточек за курсором (GlowCard) ───────────────────── */
+[data-glow]::before,
+[data-glow]::after {
+  pointer-events: none;
+  content: "";
+  position: absolute;
+  inset: calc(var(--border-size) * -1);
+  border: var(--border-size) solid transparent;
+  border-radius: calc(var(--radius) * 1px);
+  background-attachment: fixed;
+  background-size: calc(100% + (2 * var(--border-size))) calc(100% + (2 * var(--border-size)));
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
+  mask: linear-gradient(transparent, transparent), linear-gradient(white, white);
+  mask-clip: padding-box, border-box;
+  mask-composite: intersect;
+}
+[data-glow]::before {
+  background-image: radial-gradient(
+    calc(var(--spotlight-size) * 0.75) calc(var(--spotlight-size) * 0.75) at
+    calc(var(--x, -999) * 1px) calc(var(--y, -999) * 1px),
+    hsl(var(--hue, 270) calc(var(--saturation, 90) * 1%) calc(var(--lightness, 62) * 1%) / var(--border-spot-opacity, 1)), transparent 100%
+  );
+  filter: brightness(1.6);
+}
+[data-glow]::after {
+  background-image: radial-gradient(
+    calc(var(--spotlight-size) * 0.5) calc(var(--spotlight-size) * 0.5) at
+    calc(var(--x, -999) * 1px) calc(var(--y, -999) * 1px),
+    hsl(0 100% 100% / var(--border-light-opacity, 0.85)), transparent 100%
+  );
+}
+[data-glow] [data-glow] {
+  position: absolute;
+  inset: 0;
+  will-change: filter;
+  opacity: var(--outer, 1);
+  border-radius: calc(var(--radius) * 1px);
+  border-width: calc(var(--border-size) * 20);
+  filter: blur(calc(var(--border-size) * 10));
+  background: none;
+  pointer-events: none;
+  border: none;
+}
+[data-glow] > [data-glow]::before {
+  inset: -10px;
+  border-width: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-element,
+  .animate-slide-right,
+  .animate-testimonial {
+    animation: none;
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+  .shimmer-text { animation: none; }
+}
+
+/* Параметры кнопок (components/ui/button.tsx) */
+:root {
+  --primitive-control-height-sm: 2.25rem;
+  --primitive-control-height-md: 2.75rem;
+  --primitive-control-height-lg: 3rem;
+  --primitive-radius-control: 0.875rem;
+  --primitive-control-solid-hover: var(--primary-hover);
+  --primitive-control-solid-active: #8160b3;
+  --primitive-ring: rgb(196 181 232 / 0.6);
 }

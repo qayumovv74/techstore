@@ -9,6 +9,8 @@ import { formatPrice, pluralize } from "@/lib/format";
 import { ProductArt } from "@/components/product-art";
 import { IconCart } from "@/components/icons";
 import { QtyControl } from "./qty";
+import { buttonVariants } from "@/components/ui/button-variants";
+import { ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = { title: "Корзина" };
 
@@ -28,11 +30,11 @@ async function Cart() {
 
   if (!cart.items.length) {
     return (
-      <div className="mx-auto flex max-w-md flex-col items-center py-16 text-center">
-        <IconCart className="size-14 text-muted" />
+      <div className="mx-auto my-10 flex max-w-md flex-col items-center rounded-[2rem] border border-white/10 bg-ink/60 px-6 py-12 text-center backdrop-blur-xl">
+        <IconCart className="size-14 text-lilac" />
         <h1 className="mt-4 text-2xl font-bold">Корзина пуста</h1>
         <p className="mt-2 text-sm text-muted">Загляните в каталог — там много интересного.</p>
-        <Link href="/catalog" className="mt-6 inline-flex h-11 items-center rounded-xl bg-primary px-6 text-sm font-semibold text-on-primary hover:bg-primary-hover">
+        <Link href="/catalog" className={buttonVariants({ className: "mt-6 px-6 font-semibold" })}>
           В каталог
         </Link>
       </div>
@@ -97,8 +99,9 @@ async function Cart() {
           {outOfStock ? (
             <p className="mt-5 rounded-xl bg-danger/10 px-3 py-2 text-center text-sm text-danger">Уберите товары, которых нет в наличии</p>
           ) : (
-            <Link href="/checkout" className="mt-5 flex h-12 w-full items-center justify-center rounded-xl bg-primary text-sm font-semibold text-on-primary hover:bg-primary-hover">
+            <Link href="/checkout" className={buttonVariants({ size: "lg", className: "group mt-5 w-full font-semibold" })}>
               Оформить заказ
+              <ArrowRight className="transition-transform group-hover:translate-x-0.5" aria-hidden />
             </Link>
           )}
         </aside>

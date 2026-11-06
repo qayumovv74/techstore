@@ -1,5 +1,6 @@
 import { logout } from "@/app/(auth)/actions";
 import { AccountNav } from "./account-nav";
+import { Button } from "@/components/ui";
 
 export default function AccountLayout({ children }: LayoutProps<"/account">) {
   return (
@@ -9,7 +10,7 @@ export default function AccountLayout({ children }: LayoutProps<"/account">) {
         <aside className="flex flex-col gap-2 lg:sticky lg:top-28 lg:h-fit">
           <AccountNav />
           <form action={logout} className="hidden lg:block">
-            <button className="flex h-10 w-full items-center rounded-xl px-4 text-sm text-danger hover:bg-surface-2">Выйти</button>
+            <Button variant="ghost" className="w-full justify-start px-4 font-normal text-danger hover:text-danger">Выйти</Button>
           </form>
         </aside>
         <section className="min-w-0">{children}</section>

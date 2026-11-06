@@ -88,6 +88,20 @@ MAIL_FROM=TechStore <твой@gmail.com>
 
 Для Яндекса: `SMTP_HOST=smtp.yandex.ru`, пароль приложения в id.yandex.ru → Безопасность. После правки `.env` перезапусти `npm run dev`.
 
+## Вход через Google
+
+1. [console.cloud.google.com](https://console.cloud.google.com) → создай проект → **APIs & Services → OAuth consent screen** (тип External, добавь свою почту в тестовые пользователи).
+2. **Credentials → Create credentials → OAuth client ID**, тип **Web application**.
+3. В **Authorized redirect URIs** добавь `http://localhost:3000/api/auth/google/callback` (на сервере — `https://твой-домен/api/auth/google/callback`).
+4. Скопируй Client ID и Client secret в `.env`:
+
+```
+GOOGLE_CLIENT_ID=…apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=…
+```
+
+Перезапусти сайт. Если ключей нет, кнопка ведёт обратно на вход с подсказкой «не настроен». В разработке открывай сайт через `localhost`: Google не принимает адреса вида `192.168.x.x`.
+
 ## Оплата
 
 Тестовый шлюз устроен как настоящий: магазин создаёт платёж → покупатель платит на странице шлюза → шлюз шлёт на `/api/payments/webhook` уведомление, подписанное HMAC-SHA256. Обработка идемпотентна: повторный вебхук ничего не ломает. Товар резервируется на 15 минут; просроченные резервы снимаются автоматически и по `GET /api/cron/release` (для cron на сервере).

@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { ArrowRight, ShoppingCart } from "lucide-react";
 import { addToCart } from "@/app/cart-actions";
+import { Button } from "./ui/button";
+import { buttonVariants } from "./ui/button-variants";
+import { cn } from "@/lib/cn";
 
 export function AddToCart({
   productId,
@@ -24,17 +28,19 @@ export function AddToCart({
 
   if (added) {
     return (
-      <Link href="/cart" className={`flex ${h} items-center justify-center gap-2 rounded-xl border-2 border-primary text-sm font-semibold text-primary hover:bg-surface-2`}>
+      <Link href="/cart" className={cn(buttonVariants({ variant: "outline" }), h, "group w-full border-violet/60 font-semibold text-lilac")}>
         В корзине — оформить
+        <ArrowRight className="transition-transform group-hover:translate-x-0.5" aria-hidden />
       </Link>
     );
   }
 
   return (
     <>
-      <button
-        type="button"
-        disabled={disabled || pending}
+      <Button
+        disabled={disabled}
+        loading={pending}
+        leftIcon={disabled ? undefined : <ShoppingCart aria-hidden />}
         onClick={() =>
           start(async () => {
             const res = await addToCart(productId);
@@ -45,10 +51,10 @@ export function AddToCart({
             }
           })
         }
-        className={`flex ${h} w-full items-center justify-center rounded-xl bg-primary text-sm font-semibold text-on-primary transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50`}
+        className={cn(h, "w-full font-semibold")}
       >
         {disabled ? "Нет в наличии" : pending ? "Добавляем…" : "Купить"}
-      </button>
+      </Button>
       {error ? <p className="mt-1 text-xs text-danger">{error}</p> : null}
     </>
   );

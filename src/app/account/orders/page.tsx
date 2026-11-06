@@ -29,10 +29,10 @@ async function Orders() {
 
   if (!orders.length) {
     return (
-      <div className="rounded-2xl border border-dashed border-border p-10 text-center">
+      <div className="rounded-2xl border border-dashed border-white/15 bg-ink/55 backdrop-blur-md p-10 text-center">
         <p className="font-semibold">Заказов пока нет</p>
         <p className="mt-1 text-sm text-muted">Здесь появится история покупок и статус доставки в реальном времени.</p>
-        <Link href="/catalog" className="mt-4 inline-block text-sm font-semibold text-primary hover:text-primary-hover">Перейти в каталог →</Link>
+        <Link href="/catalog" className="mt-4 inline-block text-sm font-semibold text-lilac hover:text-white">Перейти в каталог →</Link>
       </div>
     );
   }

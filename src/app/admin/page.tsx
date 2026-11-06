@@ -93,7 +93,7 @@ async function Dashboard() {
         <section className="rounded-2xl border border-border bg-surface p-5">
           <div className="flex items-baseline justify-between">
             <h3 className="font-semibold">Заканчиваются</h3>
-            <Link href="/admin/products?stock=low" className="text-sm text-primary hover:text-primary-hover">Остатки →</Link>
+            <Link href="/admin/products?stock=low" className="text-sm text-lilac hover:text-white">Остатки →</Link>
           </div>
           {low.length ? (
             <ul className="mt-3 space-y-2 text-sm">
@@ -111,7 +111,7 @@ async function Dashboard() {
       <section>
         <div className="flex items-baseline justify-between">
           <h3 className="font-semibold">Последние заказы</h3>
-          <Link href="/admin/orders" className="text-sm text-primary hover:text-primary-hover">Все →</Link>
+          <Link href="/admin/orders" className="text-sm text-lilac hover:text-white">Все →</Link>
         </div>
         <ul className="mt-3 divide-y divide-border rounded-2xl border border-border bg-surface">
           {latest.length ? latest.map((o) => (

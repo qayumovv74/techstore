@@ -1,50 +1,44 @@
-import Link from "next/link";
-import { Logo } from "./logo";
+import HalftoneWordmarkFooter, { type FooterColumn } from "./ui/halftone-wordmark-footer";
 
-const cols = [
+const columns: FooterColumn[] = [
   {
     title: "Покупателям",
     links: [
-      ["Каталог", "/catalog"],
-      ["Доставка", "/delivery"],
-      ["Рассрочка", "/installment"],
-      ["Контакты", "/contacts"],
-      ["Авторы фото", "/photo-credits"],
+      { label: "Каталог", href: "/catalog" },
+      { label: "Доставка", href: "/delivery" },
+      { label: "Рассрочка", href: "/installment" },
+      { label: "Контакты", href: "/contacts" },
+      { label: "Авторы фото", href: "/photo-credits" },
     ],
   },
   {
     title: "Личный кабинет",
     links: [
-      ["Мои заказы", "/account/orders"],
-      ["Избранное", "/account/favorites"],
-      ["Адреса доставки", "/account/addresses"],
-      ["Профиль", "/account/profile"],
+      { label: "Мои заказы", href: "/account/orders" },
+      { label: "Избранное", href: "/account/favorites" },
+      { label: "Адреса доставки", href: "/account/addresses" },
+      { label: "Профиль", href: "/account/profile" },
+    ],
+  },
+  {
+    title: "Режим работы",
+    links: [
+      { label: "Магазин — круглосуточно", href: "/contacts" },
+      { label: "Поддержка 9:00–21:00", href: "/contacts" },
+      { label: "Выдача 10:00–22:00", href: "/contacts" },
     ],
   },
 ];
 
 export function SiteFooter() {
   return (
-    <footer className="mt-16 border-t border-border bg-surface">
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="lg:col-span-2">
-          <Logo className="h-8" />
-          <p className="mt-4 max-w-sm text-sm text-muted">Техника, гаджеты и аксессуары с официальной гарантией. Доставка по Москве на следующий день.</p>
-        </div>
-        {cols.map((c) => (
-          <nav key={c.title} aria-label={c.title}>
-            <p className="text-sm font-semibold">{c.title}</p>
-            <ul className="mt-3 space-y-2 text-sm text-muted">
-              {c.links.map(([label, href]) => (
-                <li key={href}>
-                  <Link href={href} className="hover:text-primary">{label}</Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        ))}
-      </div>
-      <p className="border-t border-border py-5 text-center text-xs text-muted">© TechStore · учебный проект для портфолио, не настоящий магазин</p>
-    </footer>
+    <HalftoneWordmarkFooter
+      wordmark="techstore"
+      label="TechStore"
+      meta="© 2026 · Москва"
+      description="Техника, гаджеты и аксессуары с официальной гарантией. Доставка по Москве на следующий день."
+      columns={columns}
+      className="mt-20 border-t border-white/5 bg-linear-to-b from-ink/30 to-ink/90 pb-[19vw] md:pb-[17vw]"
+    />
   );
 }

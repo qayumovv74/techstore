@@ -12,6 +12,7 @@ import { NEXT_STATUSES } from "@/lib/orders";
 import { OrderTimeline, StatusBadge } from "@/components/order-timeline";
 import { LiveRefresh } from "@/components/live-refresh";
 import { setOrderStatus } from "../actions";
+import { Button } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Заказ" };
 
@@ -44,7 +45,7 @@ async function Order({ params }: { params: PageProps<"/admin/orders/[id]">["para
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between gap-3">
-        <Link href="/admin/orders" className="text-sm text-primary hover:text-primary-hover">← Все заказы</Link>
+        <Link href="/admin/orders" className="text-sm text-lilac hover:text-white">← Все заказы</Link>
         <LiveRefresh topics={["orders"]} />
       </div>
       <div className="rounded-2xl border border-border bg-surface p-5">
@@ -59,9 +60,12 @@ async function Order({ params }: { params: PageProps<"/admin/orders/[id]">["para
               <form key={to} action={setOrderStatus}>
                 <input type="hidden" name="id" value={order.id} />
                 <input type="hidden" name="to" value={to} />
-                <button className={`h-10 rounded-xl px-4 text-sm font-semibold ${to === "CANCELLED" ? "border border-danger text-danger hover:bg-danger/10" : "bg-primary text-on-primary hover:bg-primary-hover"}`}>
+                <Button
+                  variant={to === "CANCELLED" ? "outline" : "default"}
+                  className={to === "CANCELLED" ? "h-10 border-danger/70 text-danger hover:bg-danger/10" : "h-10"}
+                >
                   {to === "CANCELLED" ? "Отменить заказ" : `→ ${statusLabel[to]}`}
-                </button>
+                </Button>
               </form>
             ))}
             {order.status === "PENDING_PAYMENT" ? <p className="self-center text-xs text-muted">«Оплачен» ставится только по уведомлению от платёжного шлюза</p> : null}

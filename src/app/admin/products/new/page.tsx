@@ -21,7 +21,7 @@ async function NewProduct() {
   const categories = await db.select({ id: schema.categories.id, name: schema.categories.name }).from(schema.categories).orderBy(asc(schema.categories.name));
   return (
     <div className="flex flex-col gap-4">
-      <Link href="/admin/products" className="text-sm text-primary hover:text-primary-hover">← Все товары</Link>
+      <Link href="/admin/products" className="text-sm text-lilac hover:text-white">← Все товары</Link>
       <h2 className="text-xl font-bold">Новый товар</h2>
       <ProductForm
         categories={categories}

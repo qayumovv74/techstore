@@ -9,7 +9,7 @@ export function SortSelect({ value, options, hrefs }: { value: string; options: 
   const [pending, start] = useTransition();
   return (
     <label className="flex items-center gap-2 text-sm">
-      <span className="text-muted">Сортировка</span>
+      <span className="text-text/85">Сортировка</span>
       <select
         value={value}
         disabled={pending}

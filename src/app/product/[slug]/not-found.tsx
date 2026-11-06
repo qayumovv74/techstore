@@ -6,7 +6,7 @@ export default function NotFound() {
       <p className="text-5xl font-bold text-primary">404</p>
       <h1 className="mt-3 text-xl font-bold">Такого товара нет</h1>
       <p className="mt-1 text-sm text-muted">Возможно, его сняли с продажи.</p>
-      <Link href="/catalog" className="mt-6 font-semibold text-primary hover:text-primary-hover">В каталог →</Link>
+      <Link href="/catalog" className="mt-6 font-semibold text-lilac hover:text-white">В каталог →</Link>
     </main>
   );
 }

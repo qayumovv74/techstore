@@ -8,6 +8,8 @@ import { requireRole, STAFF_ROLES } from "@/lib/auth";
 import { formatPrice } from "@/lib/format";
 import { ProductArt } from "@/components/product-art";
 import { setStock, toggleActive } from "./actions";
+import { Button } from "@/components/ui";
+import { buttonVariants } from "@/components/ui/button-variants";
 
 export const metadata: Metadata = { title: "Товары" };
 
@@ -72,12 +74,12 @@ async function Products({ searchParams }: { searchParams: PageProps<"/admin/prod
           <label className="flex items-center gap-2 px-2 text-sm">
             <input type="checkbox" name="stock" value="low" defaultChecked={low} className="size-4 accent-[var(--primary)]" /> ≤ 3 шт.
           </label>
-          <button className="h-10 rounded-xl border border-border px-4 text-sm hover:bg-surface-2">Показать</button>
+          <Button variant="outline" className="h-10 font-normal">Показать</Button>
         </form>
         {isAdmin ? (
           <div className="flex gap-2">
-            <Link href="/admin/categories" className="inline-flex h-10 items-center rounded-xl border border-border px-4 text-sm hover:bg-surface-2">Категории</Link>
-            <Link href="/admin/products/new" className="inline-flex h-10 items-center rounded-xl bg-primary px-4 text-sm font-semibold text-on-primary hover:bg-primary-hover">+ Товар</Link>
+            <Link href="/admin/categories" className={buttonVariants({ variant: "outline", className: "h-10" })}>Категории</Link>
+            <Link href="/admin/products/new" className={buttonVariants({ className: "h-10 font-semibold" })}>+ Товар</Link>
           </div>
         ) : null}
       </div>
@@ -118,7 +120,7 @@ async function Products({ searchParams }: { searchParams: PageProps<"/admin/prod
                     <input type="hidden" name="id" value={p.id} />
                     <input name="quantity" type="number" min={p.reserved ?? 0} defaultValue={p.quantity ?? 0} aria-label={`Остаток ${p.name}`}
                       className={`h-9 w-20 rounded-lg border bg-bg px-2 text-sm ${Number(p.available) <= 3 ? "border-danger" : "border-border"}`} />
-                    <button className="h-9 rounded-lg border border-border px-2 text-xs hover:bg-surface-2">OK</button>
+                    <Button variant="outline" size="sm" className="h-9 px-2.5">OK</Button>
                     {p.reserved ? <span className="text-xs text-muted">резерв {p.reserved}</span> : null}
                   </form>
                 </td>

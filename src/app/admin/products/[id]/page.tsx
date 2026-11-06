@@ -34,7 +34,7 @@ async function EditProduct({ params, searchParams }: PageProps<"/admin/products/
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Link href="/admin/products" className="text-sm text-primary hover:text-primary-hover">← Все товары</Link>
+        <Link href="/admin/products" className="text-sm text-lilac hover:text-white">← Все товары</Link>
         <Link href={`/product/${product.slug}`} className="text-sm text-muted hover:text-primary">Открыть на сайте ↗</Link>
       </div>
       <h2 className="text-xl font-bold">{product.brand} {product.name}</h2>

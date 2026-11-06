@@ -59,7 +59,7 @@ async function Orders({ searchParams }: { searchParams: PageProps<"/admin/orders
           <tbody className="divide-y divide-border">
             {orders.length ? orders.map((o) => (
               <tr key={o.id} className="hover:bg-surface-2">
-                <td className="px-4 py-3"><Link href={`/admin/orders/${o.id}`} className="font-semibold text-primary hover:text-primary-hover">TS-{o.number}</Link></td>
+                <td className="px-4 py-3"><Link href={`/admin/orders/${o.id}`} className="font-semibold text-lilac hover:text-white">TS-{o.number}</Link></td>
                 <td className="px-4 py-3 whitespace-nowrap">{msk(o.createdAt)}</td>
                 <td className="px-4 py-3">{o.user.name}<p className="text-xs text-muted">{o.user.email}</p></td>
                 <td className="px-4 py-3">{formatPrice(o.total)}<p className="text-xs text-muted">{o.items.reduce((s, i) => s + i.qty, 0)} шт. · {o.deliveryMethod === "PICKUP" ? "самовывоз" : "курьер"}</p></td>

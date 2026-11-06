@@ -36,7 +36,7 @@ function Nav({ pathname }: { pathname: string }) {
                 href={it.href}
                 aria-current={active ? "page" : undefined}
                 className={`flex h-10 items-center rounded-xl px-4 text-sm transition-colors ${
-                  active ? "bg-primary font-semibold text-on-primary" : "hover:bg-surface-2"
+                  active ? "bg-lilac font-semibold text-ink" : "bg-ink/40 backdrop-blur hover:bg-surface-2"
                 }`}
               >
                 {it.label}

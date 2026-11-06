@@ -6,6 +6,7 @@ import { db, schema } from "@/db";
 import { requireRole } from "@/lib/auth";
 import { deleteCategory, renameCategory } from "../products/actions";
 import { AddCategoryForm } from "./add-form";
+import { Button } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Категории" };
 
@@ -28,7 +29,7 @@ async function Categories() {
 
   return (
     <div className="flex flex-col gap-4">
-      <Link href="/admin/products" className="text-sm text-primary hover:text-primary-hover">← Товары</Link>
+      <Link href="/admin/products" className="text-sm text-lilac hover:text-white">← Товары</Link>
       <h2 className="text-xl font-bold">Категории</h2>
       <AddCategoryForm />
       <ul className="divide-y divide-border rounded-2xl border border-border bg-surface">
@@ -38,7 +39,7 @@ async function Categories() {
               <input type="hidden" name="id" value={c.id} />
               <input name="name" defaultValue={c.name} aria-label={`Название категории ${c.name}`}
                 className="h-9 w-64 rounded-lg border border-border bg-bg px-2 text-sm" />
-              <button className="h-9 rounded-lg border border-border px-3 text-xs hover:bg-surface-2">Переименовать</button>
+              <Button variant="outline" size="sm">Переименовать</Button>
             </form>
             <Link href={`/admin/products?category=${c.slug}`} className="text-sm text-muted hover:text-primary">{c.products} тов.</Link>
             {c.products === 0 ? (

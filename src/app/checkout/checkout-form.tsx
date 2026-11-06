@@ -2,10 +2,11 @@
 
 import { useActionState, useState } from "react";
 import { PhoneInput } from "@/components/phone-input";
-import { Field } from "@/components/ui";
+import { Button, Field } from "@/components/ui";
 import { formatPrice } from "@/lib/format";
 import type { ActionState } from "@/lib/validation";
 import { submitCheckout } from "./actions";
+import { ArrowRight } from "lucide-react";
 
 type Address = { id: string; label: string; city: string; street: string; apartment: string | null; isDefault: boolean };
 
@@ -103,9 +104,9 @@ export function CheckoutForm(props: {
           <span className="text-2xl font-bold">{formatPrice(props.itemsTotal + deliveryPrice)}</span>
         </div>
         {state.error ? <p role="alert" className="mt-4 rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger">{state.error}</p> : null}
-        <button disabled={pending} className="mt-5 h-12 w-full rounded-xl bg-primary text-sm font-semibold text-on-primary hover:bg-primary-hover disabled:opacity-60">
+        <Button loading={pending} size="lg" rightIcon={<ArrowRight aria-hidden />} rightIconMotion="arrow" className="mt-5 h-12 w-full">
           {pending ? "Оформляем…" : "Перейти к оплате"}
-        </button>
+        </Button>
         <p className="mt-2 text-center text-xs text-muted">Товары резервируются на 15 минут</p>
       </aside>
     </form>

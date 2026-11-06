@@ -38,7 +38,7 @@ export function PhoneInput({
 
   return (
     <label className="flex flex-col gap-1.5 text-sm">
-      <span className="font-medium">{label}</span>
+      <span className="font-medium text-muted">{label}</span>
       <input
         name={name}
         type="tel"
@@ -57,7 +57,7 @@ export function PhoneInput({
         }}
         aria-invalid={errors?.length ? true : undefined}
         aria-describedby={errors?.length ? errorId : undefined}
-        className={`h-11 rounded-xl border bg-surface px-3.5 text-base tabular-nums outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/25 ${
+        className={`h-12 rounded-2xl border bg-text/5 px-4 text-base tabular-nums outline-none backdrop-blur-sm transition-colors placeholder:text-muted/60 focus:border-violet/70 focus:bg-violet/10 ${
           errors?.length ? "border-danger" : "border-border"
         }`}
       />

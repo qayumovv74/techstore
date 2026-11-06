@@ -7,6 +7,7 @@ import { getFavoriteIds } from "@/lib/favorites";
 import { getCartIds } from "@/lib/cart";
 import { catalogHref } from "./url";
 import { SortSelect } from "./sort-select";
+import { Button } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Каталог" };
 
@@ -63,10 +64,10 @@ async function Catalog({ searchParams }: { searchParams: PageProps<"/catalog">["
               ))}
             </ul>
           ) : (
-            <div className="rounded-2xl border border-dashed border-border p-10 text-center">
+            <div className="rounded-2xl border border-dashed border-white/15 bg-ink/55 backdrop-blur-md p-10 text-center">
               <p className="font-semibold">Ничего не нашлось</p>
               <p className="mt-1 text-sm text-muted">Попробуйте убрать часть фильтров.</p>
-              <Link href="/catalog" className="mt-4 inline-block text-sm font-semibold text-primary hover:text-primary-hover">
+              <Link href="/catalog" className="mt-4 inline-block text-sm font-semibold text-lilac hover:text-white">
                 Сбросить всё
               </Link>
             </div>
@@ -159,9 +160,7 @@ function FiltersForm({ id, f, brands }: { id: string; f: CatalogFilters; brands:
         ) : null}
 
         <div className="flex gap-2">
-          <button className="h-10 flex-1 rounded-xl bg-primary text-sm font-semibold text-on-primary hover:bg-primary-hover">
-            Применить
-          </button>
+          <Button className="h-10 flex-1">Применить</Button>
           <Link href={catalogHref({ ...f, brands: [], min: undefined, max: undefined, inStock: false })}
             className="grid h-10 place-items-center rounded-xl border border-border px-3 text-sm hover:bg-surface-2">
             Сброс

@@ -8,6 +8,7 @@ import { pluralize } from "@/lib/format";
 import { formatPhone } from "@/lib/validation";
 import { PanelSkeleton } from "./skeleton";
 import { logout } from "@/app/(auth)/actions";
+import { Button } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Личный кабинет" };
 
@@ -36,14 +37,14 @@ async function Overview() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="rounded-2xl bg-gradient-to-br from-ink to-deep p-6 text-white dark:border dark:border-border">
-        <p className="text-sm text-sky">Здравствуйте,</p>
+      <div className="rounded-3xl border border-white/10 bg-linear-to-br from-indigo/70 via-night/80 to-ink/80 p-6 text-white backdrop-blur-md">
+        <p className="text-sm text-lilac">Здравствуйте,</p>
         <p className="mt-1 text-2xl font-bold">{user.name}</p>
-        <p className="mt-3 text-sm text-sky">
+        <p className="mt-3 text-sm text-lilac">
           {user.email}
           {profile?.phone ? ` · ${formatPhone(profile.phone)}` : ""}
         </p>
-        <p className="mt-1 text-xs text-sky/70">
+        <p className="mt-1 text-xs text-lilac/70">
           С нами с {profile?.createdAt.toLocaleDateString("ru-RU", { month: "long", year: "numeric" })}
         </p>
       </div>
@@ -66,7 +67,7 @@ async function Overview() {
       ) : null}
 
       <form action={logout} className="lg:hidden">
-        <button className="h-11 w-full rounded-xl border border-border text-sm text-danger">Выйти из аккаунта</button>
+        <Button variant="outline" className="w-full text-danger">Выйти из аккаунта</Button>
       </form>
     </div>
   );

@@ -44,10 +44,10 @@ async function Favorites() {
 
   if (!rows.length) {
     return (
-      <div className="rounded-2xl border border-dashed border-border p-10 text-center">
+      <div className="rounded-2xl border border-dashed border-white/15 bg-ink/55 backdrop-blur-md p-10 text-center">
         <p className="font-semibold">В избранном пусто</p>
         <p className="mt-1 text-sm text-muted">Нажмите ♡ на карточке товара, чтобы сохранить его здесь.</p>
-        <Link href="/catalog" className="mt-4 inline-block text-sm font-semibold text-primary hover:text-primary-hover">В каталог →</Link>
+        <Link href="/catalog" className="mt-4 inline-block text-sm font-semibold text-lilac hover:text-white">В каталог →</Link>
       </div>
     );
   }

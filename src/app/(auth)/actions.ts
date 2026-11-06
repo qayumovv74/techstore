@@ -8,16 +8,12 @@ import { createSession, deleteSession } from "@/lib/session";
 import { mergeGuestCart } from "@/lib/cart";
 import { recordAuthEvent } from "@/lib/audit";
 import { loginSchema, registerSchema, type FormState } from "@/lib/validation";
+import { safeNext } from "@/lib/safe-next";
 
 // Хеш-заглушка: проверка пароля идёт одинаково долго, есть пользователь или нет.
 // Так по времени ответа нельзя узнать, зарегистрирован ли email.
 const DUMMY_HASH = "$2b$10$9vFV/0thObD8FxTolZfYUe0YpR2Ou8VJNvI1rhlJMTKDNiSsX7squ";
 
-/** Разрешаем только внутренние пути, чтобы ?next= нельзя было увести на чужой сайт */
-function safeNext(value: FormDataEntryValue | null, fallback: string) {
-  const next = typeof value === "string" ? value : "";
-  return next.startsWith("/") && !next.startsWith("//") ? next : fallback;
-}
 
 export async function login(_prev: FormState, formData: FormData): Promise<FormState> {
   const raw = { email: String(formData.get("email") ?? ""), password: String(formData.get("password") ?? "") };
@@ -33,7 +29,8 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
     return { error: "Неверный email или пароль", values: { email: raw.email } };
   }
 
-  await createSession({ userId: user.id, role: user.role });
+  // галочка «Запомнить меня»: без неё сессия живёт до закрытия браузера
+  await createSession({ userId: user.id, role: user.role }, { remember: formData.get("remember") === "on" });
   await mergeGuestCart(user.id);
   await recordAuthEvent("LOGIN", user.email, user.id);
   const fallback = user.role === "CUSTOMER" ? "/account" : "/admin";

@@ -53,6 +53,8 @@ export const users = pgTable("users", {
   name: text("name").notNull(),
   phone: text("phone"),
   role: roleEnum("role").notNull().default("CUSTOMER"),
+  /** sub из Google — заполняется после первого входа через Google */
+  googleId: text("google_id").unique(),
   ...timestamps,
 });
 

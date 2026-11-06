@@ -44,7 +44,7 @@ async function Addresses() {
                 {!a.isDefault ? (
                   <form action={setDefaultAddress}>
                     <input type="hidden" name="id" value={a.id} />
-                    <button className="font-medium text-primary hover:text-primary-hover">Сделать основным</button>
+                    <button className="font-medium text-lilac hover:text-white">Сделать основным</button>
                   </form>
                 ) : null}
                 <form action={deleteAddress}>
@@ -56,7 +56,7 @@ async function Addresses() {
           ))}
         </ul>
       ) : (
-        <p className="rounded-2xl border border-dashed border-border p-6 text-sm text-muted">
+        <p className="rounded-2xl border border-dashed border-white/15 bg-ink/55 backdrop-blur-md p-6 text-sm text-muted">
           Адресов пока нет. Добавьте адрес — при оформлении заказа он подставится сам.
         </p>
       )}

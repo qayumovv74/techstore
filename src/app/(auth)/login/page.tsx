@@ -6,23 +6,29 @@ export const metadata: Metadata = { title: "Вход" };
 
 export default function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
-    <div className="flex w-full flex-col items-center gap-4">
+    <div className="flex w-full flex-col gap-8">
       <Suspense fallback={<AuthForm mode="login" />}>
-        <WithNext searchParams={searchParams} />
+        <WithParams searchParams={searchParams} />
       </Suspense>
       <DemoAccounts />
     </div>
   );
 }
 
-async function WithNext({ searchParams }: { searchParams: PageProps<"/login">["searchParams"] }) {
-  const { next } = await searchParams;
-  return <AuthForm mode="login" next={typeof next === "string" ? next : undefined} />;
+async function WithParams({ searchParams }: { searchParams: PageProps<"/login">["searchParams"] }) {
+  const { next, oauth } = await searchParams;
+  return (
+    <AuthForm
+      mode="login"
+      next={typeof next === "string" ? next : undefined}
+      oauth={typeof oauth === "string" ? oauth : undefined}
+    />
+  );
 }
 
 function DemoAccounts() {
   return (
-    <div className="w-full max-w-md rounded-2xl border border-dashed border-border p-4 text-sm text-muted">
+    <div className="animate-element animate-delay-1000 rounded-2xl border border-dashed border-border bg-ink/30 p-4 text-sm text-muted">
       <p className="font-semibold text-text">Демо-доступ · пароль demo12345</p>
       <ul className="mt-2 space-y-1 font-mono text-xs">
         <li>admin@techstore.ru — админ</li>

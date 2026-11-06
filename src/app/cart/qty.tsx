@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { updateQty } from "@/app/cart-actions";
+import { Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export function QtyControl({ productId, qty, max, name }: { productId: string; qty: number; max: number; name: string }) {
   const [pending, start] = useTransition();
@@ -22,9 +24,17 @@ export function QtyControl({ productId, qty, max, name }: { productId: string; q
         <button type="button" onClick={() => set(qty + 1)} disabled={pending || qty >= max}
           aria-label={`Увеличить количество: ${name}`} className="grid size-10 place-items-center text-lg disabled:text-muted">+</button>
       </div>
-      <button type="button" onClick={() => set(0)} disabled={pending} className="text-sm text-muted hover:text-danger">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => set(0)}
+        disabled={pending}
+        leftIcon={<Trash2 aria-hidden />}
+        leftIconMotion="trash"
+        className="text-muted hover:text-danger"
+      >
         Удалить
-      </button>
+      </Button>
     </div>
   );
 }
