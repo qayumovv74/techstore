@@ -32,7 +32,9 @@ async function checkout(page: Page) {
 async function pay(page: Page, card: string) {
   const form = page.locator("form").filter({ visible: true });
   await form.getByLabel("Номер карты").fill(card);
-  await form.getByLabel("ММ/ГГ").fill("12/28");
+  await form.getByLabel("Имя на карте").fill("TEST BUYER");
+  await form.getByLabel("Месяц").selectOption("12");
+  await form.getByLabel("Год").selectOption(String(new Date().getFullYear() + 2));
   await form.getByLabel("CVC").fill("123");
   await form.getByRole("button", { name: /Оплатить/ }).click();
   await page.waitForURL(/\/account\/orders\/.+\?payment=/);

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = { title: "Контакты" };
 
@@ -20,6 +21,10 @@ export default function ContactsPage() {
           </div>
         ))}
       </dl>
+      <Link href="/support" className="mt-6 flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-ink/60 px-5 py-4 text-sm backdrop-blur-md transition-colors hover:border-violet/50">
+        <span><span className="font-semibold">Написать в поддержку</span><br /><span className="text-muted">Ответим на почту в течение рабочего дня</span></span>
+        <span className="text-lilac">→</span>
+      </Link>
       <p className="mt-6 text-xs text-muted">TechStore — учебный проект. Телефонов и адресов магазинов нет, это не настоящий магазин.</p>
     </main>
   );

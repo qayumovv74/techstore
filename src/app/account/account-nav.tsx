@@ -3,13 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
+import { Heart, LayoutDashboard, LifeBuoy, MapPin, Package, UserRound } from "lucide-react";
 
 const items = [
-  { href: "/account", label: "Обзор" },
-  { href: "/account/orders", label: "Мои заказы" },
-  { href: "/account/favorites", label: "Избранное" },
-  { href: "/account/addresses", label: "Адреса доставки" },
-  { href: "/account/profile", label: "Профиль и безопасность" },
+  { href: "/account", label: "Обзор", icon: LayoutDashboard },
+  { href: "/account/orders", label: "Мои заказы", icon: Package },
+  { href: "/account/favorites", label: "Избранное", icon: Heart },
+  { href: "/account/addresses", label: "Адреса доставки", icon: MapPin },
+  { href: "/account/profile", label: "Профиль и безопасность", icon: UserRound },
+  { href: "/support", label: "Поддержка", icon: LifeBuoy },
 ];
 
 export function AccountNav() {
@@ -35,10 +37,11 @@ function Nav({ pathname }: { pathname: string }) {
               <Link
                 href={it.href}
                 aria-current={active ? "page" : undefined}
-                className={`flex h-10 items-center rounded-xl px-4 text-sm transition-colors ${
+                className={`flex h-10 items-center gap-2.5 rounded-xl px-4 text-sm transition-colors ${
                   active ? "bg-lilac font-semibold text-ink" : "bg-ink/40 backdrop-blur hover:bg-surface-2"
                 }`}
               >
+                <it.icon className="size-4 shrink-0" aria-hidden />
                 {it.label}
               </Link>
             </li>

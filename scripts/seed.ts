@@ -94,7 +94,7 @@ const catalog: Record<string, { name: string; items: Seed[] }> = {
 async function main() {
   console.log("Очищаю таблицы…");
   await db.execute(
-    sql.raw(`TRUNCATE favorites, order_events, payments, order_items, orders, cart_items, stock, product_images, products, categories, addresses, users RESTART IDENTITY CASCADE`),
+    sql.raw(`TRUNCATE reviews, support_tickets, favorites, order_events, payments, order_items, orders, cart_items, stock, product_images, products, categories, addresses, users RESTART IDENTITY CASCADE`),
   );
 
   const hash = await bcrypt.hash("demo12345", 10);

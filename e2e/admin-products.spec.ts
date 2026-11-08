@@ -31,8 +31,11 @@ test("админ создаёт товар с фото, он появляетс�
     buffer: readFileSync("src/app/icon.png"),
   });
   await page.getByRole("button", { name: "Создать товар" }).click();
-  await page.waitForURL(/\/admin\/products\/.+\?created=1/);
-  await expect(page.getByText("Товар создан")).toBeVisible();
+  // остаёмся на странице: сообщение о добавлении, форма очищена для следующего товара
+  await expect(page.getByText(`Товар «${name}» добавлен`)).toBeVisible();
+  await expect(page.getByLabel("Название")).toHaveValue("");
+  await expect(page.getByLabel("Бренд")).toHaveValue("");
+  await expect(page.getByRole("link", { name: "Открыть на витрине" })).toBeVisible();
 
   await page.goto(`/catalog?q=${encodeURIComponent("Тестовый смартфон")}`);
   const card = page.locator("article", { hasText: name });

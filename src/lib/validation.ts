@@ -66,3 +66,31 @@ export const forgotSchema = z.object({ email: z.email("Введите корре
 export const resetSchema = z
   .object({ token: z.string().min(20), next: registerSchema.shape.password, confirm: z.string() })
   .refine((d) => d.next === d.confirm, { path: ["confirm"], message: "Пароли не совпадают" });
+
+export const reviewSchema = z.object({
+  productId: z.uuid(),
+  rating: z.coerce.number().int().min(1, "Поставьте оценку от 1 до 5").max(5, "Поставьте оценку от 1 до 5"),
+  text: z.string().trim().min(10, "Напишите хотя бы пару предложений — от 10 символов").max(1500, "Слишком длинно — до 1500 символов"),
+});
+
+export const SUPPORT_TOPICS = {
+  ORDER: "Заказ",
+  DELIVERY: "Доставка",
+  RETURN: "Возврат и гарантия",
+  PAYMENT: "Оплата",
+  SITE: "Ошибка на сайте",
+  OTHER: "Другое",
+} as const;
+
+export const supportSchema = z.object({
+  name: z.string().trim().min(2, "Как к вам обращаться?").max(80),
+  email: z.email("Введите корректный email").trim().toLowerCase(),
+  topic: z.enum(Object.keys(SUPPORT_TOPICS) as [keyof typeof SUPPORT_TOPICS, ...(keyof typeof SUPPORT_TOPICS)[]]),
+  orderNumber: z
+    .string()
+    .trim()
+    .max(20)
+    .transform((v) => v.replace(/^ts-?/i, "").replace(/\D/g, ""))
+    .optional(),
+  message: z.string().trim().min(10, "Опишите ситуацию подробнее — от 10 символов").max(3000, "До 3000 символов"),
+});

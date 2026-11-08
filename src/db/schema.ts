@@ -10,9 +10,10 @@ import {
   uniqueIndex,
   index,
   primaryKey,
+  check,
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 
 // ─── Перечисления ────────────────────────────────────────────────
 export const roleEnum = pgEnum("role", ["CUSTOMER", "MANAGER", "ADMIN"]);
@@ -55,6 +56,8 @@ export const users = pgTable("users", {
   role: roleEnum("role").notNull().default("CUSTOMER"),
   /** sub из Google — заполняется после первого входа через Google */
   googleId: text("google_id").unique(),
+  /** /uploads/avatars/… — квадрат 320×320 WebP */
+  avatarUrl: text("avatar_url"),
   ...timestamps,
 });
 
@@ -268,12 +271,68 @@ export const orderEvents = pgTable(
   (t) => [index("order_events_order_idx").on(t.orderId)],
 );
 
+// ─── Отзывы ──────────────────────────────────────────────────────
+/** Отзыв можно оставить только на купленный товар — один на товар от покупателя */
+export const reviews = pgTable(
+  "reviews",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** заказ, в котором товар куплен — подтверждение покупки */
+    orderId: uuid("order_id").references(() => orders.id, { onDelete: "set null" }),
+    rating: integer("rating").notNull(),
+    text: text("text").notNull(),
+    /** скрыт модератором */
+    hidden: boolean("hidden").notNull().default(false),
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex("reviews_user_product_uq").on(t.userId, t.productId),
+    index("reviews_product_idx").on(t.productId),
+    check("reviews_rating_range", sql`${t.rating} between 1 and 5`),
+  ],
+);
+
+// ─── Поддержка ───────────────────────────────────────────────────
+export const supportTopicEnum = pgEnum("support_topic", ["ORDER", "DELIVERY", "RETURN", "PAYMENT", "SITE", "OTHER"]);
+export const supportStatusEnum = pgEnum("support_status", ["OPEN", "ANSWERED", "CLOSED"]);
+
+export const supportTickets = pgTable(
+  "support_tickets",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    /** номер обращения для клиента: №101 */
+    number: integer("number").generatedAlwaysAsIdentity({ startWith: 100 }).notNull().unique(),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+    name: text("name").notNull(),
+    email: text("email").notNull(),
+    topic: supportTopicEnum("topic").notNull().default("OTHER"),
+    orderNumber: text("order_number"),
+    message: text("message").notNull(),
+    status: supportStatusEnum("status").notNull().default("OPEN"),
+    ip: text("ip"),
+    ...timestamps,
+  },
+  (t) => [index("support_tickets_status_idx").on(t.status), index("support_tickets_email_idx").on(t.email)],
+);
+
 // ─── Связи (для удобных запросов db.query.*) ─────────────────────
 export const usersRelations = relations(users, ({ many }) => ({
   addresses: many(addresses),
   orders: many(orders),
   cartItems: many(cartItems),
   favorites: many(favorites),
+  reviews: many(reviews),
+}));
+
+export const reviewsRelations = relations(reviews, ({ one }) => ({
+  user: one(users, { fields: [reviews.userId], references: [users.id] }),
+  product: one(products, { fields: [reviews.productId], references: [products.id] }),
 }));
 
 export const favoritesRelations = relations(favorites, ({ one }) => ({
@@ -299,6 +358,7 @@ export const productsRelations = relations(products, ({ one, many }) => ({
   category: one(categories, { fields: [products.categoryId], references: [categories.id] }),
   images: many(productImages),
   stock: one(stock, { fields: [products.id], references: [stock.productId] }),
+  reviews: many(reviews),
 }));
 
 export const productImagesRelations = relations(productImages, ({ one }) => ({
@@ -339,3 +399,5 @@ export type User = typeof users.$inferSelect;
 export type Address = typeof addresses.$inferSelect;
 export type Role = (typeof roleEnum.enumValues)[number];
 export type OrderStatus = (typeof orderStatusEnum.enumValues)[number];
+export type SupportTopic = (typeof supportTopicEnum.enumValues)[number];
+export type SupportStatus = (typeof supportStatusEnum.enumValues)[number];

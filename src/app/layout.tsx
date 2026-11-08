@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { MobileTabbar } from "@/components/mobile-tabbar";
 import { SilkBackground } from "@/components/ui/silk-background";
+import { Assistant } from "@/components/assistant";
 
 export const metadata: Metadata = {
   title: { default: "TechStore — техника с доставкой по Москве", template: "%s · TechStore" },
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Suspense>{children}</Suspense>
         <SiteFooter />
         <MobileTabbar />
+        <Assistant />
       </body>
     </html>
   );

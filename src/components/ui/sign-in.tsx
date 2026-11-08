@@ -47,37 +47,40 @@ export function OrDivider({ className, children = "или" }: { className?: stri
 type Perk = { icon: LucideIcon; title: string; text: string };
 
 const PERKS: Perk[] = [
-  { icon: Truck, title: "Доставка завтра", text: "Курьером по Москве, из пункта выдачи — уже сегодня." },
-  { icon: ShieldCheck, title: "Официальная гарантия", text: "Чек и гарантийный талон к каждому заказу." },
-  { icon: CreditCard, title: "Рассрочка 0-0-12", text: "Без первого взноса и переплаты на год." },
+  { icon: Truck, title: "Доставка завтра", text: "Курьером по Москве, самовывоз — сегодня" },
+  { icon: ShieldCheck, title: "Гарантия", text: "Чек и гарантийный талон к заказу" },
+  { icon: CreditCard, title: "Рассрочка 0-0-12", text: "Без взноса и переплаты на год" },
 ];
 
-function PerkCard({ perk, delay }: { perk: Perk; delay: string }) {
+function PerkCard({ perk, delay, className }: { perk: Perk; delay: string; className?: string }) {
   const Icon = perk.icon;
   return (
-    <div className={`animate-testimonial ${delay} flex w-64 items-start gap-3 rounded-3xl border border-white/10 bg-ink/45 p-5 backdrop-blur-xl`}>
-      <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-violet/20 text-lilac">
-        <Icon className="size-5" aria-hidden />
+    <div className={cn("animate-testimonial flex min-w-0 flex-col gap-3 rounded-3xl border border-white/10 bg-ink/50 p-4 backdrop-blur-xl", delay, className)}>
+      <span className="grid size-9 place-items-center rounded-xl bg-violet/20 text-lilac">
+        <Icon className="size-[18px]" aria-hidden />
       </span>
-      <div className="text-sm leading-snug">
+      <div className="text-[13px] leading-snug">
         <p className="font-semibold">{perk.title}</p>
-        <p className="mt-1 text-muted">{perk.text}</p>
+        <p className="mt-1 text-xs text-muted">{perk.text}</p>
       </div>
     </div>
   );
 }
 
-/** Правая колонка: 3D-витрина и условия магазина (только на широких экранах) */
+/**
+ * Правая колонка: 3D-витрина и условия магазина (только на широких экранах).
+ * Карточки — сетка внутри панели: сколько колонок помещается, столько карточек и видно.
+ */
 function AuthAside() {
   return (
     <section className="relative hidden flex-1 p-4 md:block" aria-hidden>
-      <div className="animate-slide-right animate-delay-300 absolute inset-4 overflow-hidden rounded-3xl border border-white/10 bg-[radial-gradient(120%_80%_at_70%_20%,rgb(61_44_141/0.55),rgb(4_5_46/0.5)_55%,rgb(2_1_10/0.7))]">
-        <Hero3D variant="auth" className="absolute inset-x-0 top-0 bottom-28" />
-      </div>
-      <div className="absolute bottom-8 left-1/2 flex w-full -translate-x-1/2 justify-center gap-4 px-8">
-        <PerkCard perk={PERKS[0]} delay="animate-delay-1000" />
-        <div className="hidden xl:flex"><PerkCard perk={PERKS[1]} delay="animate-delay-1200" /></div>
-        <div className="hidden 2xl:flex"><PerkCard perk={PERKS[2]} delay="animate-delay-1400" /></div>
+      <div className="animate-slide-right animate-delay-300 absolute inset-4 flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-[radial-gradient(120%_80%_at_70%_20%,rgb(61_44_141/0.55),rgb(4_5_46/0.5)_55%,rgb(2_1_10/0.7))]">
+        <Hero3D variant="auth" className="min-h-0 flex-1" />
+        <div className="grid grid-cols-1 gap-3 p-5 lg:grid-cols-2 xl:grid-cols-3">
+          <PerkCard perk={PERKS[0]} delay="animate-delay-1000" />
+          <PerkCard perk={PERKS[1]} delay="animate-delay-1200" className="hidden lg:flex" />
+          <PerkCard perk={PERKS[2]} delay="animate-delay-1400" className="hidden xl:flex" />
+        </div>
       </div>
     </section>
   );

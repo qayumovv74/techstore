@@ -11,7 +11,7 @@ import { db, schema } from "@/db";
 import type { Role } from "@/db/schema";
 import { readSession } from "./session";
 
-export type CurrentUser = { id: string; name: string; email: string; role: Role };
+export type CurrentUser = { id: string; name: string; email: string; role: Role; avatarUrl: string | null };
 
 /** Пользователь или null. cache() — один запрос к БД на рендер. */
 export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
@@ -20,7 +20,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
 
   const user = await db.query.users.findFirst({
     where: eq(schema.users.id, session.userId),
-    columns: { id: true, name: true, email: true, role: true },
+    columns: { id: true, name: true, email: true, role: true, avatarUrl: true },
   });
   return user ?? null;
 });

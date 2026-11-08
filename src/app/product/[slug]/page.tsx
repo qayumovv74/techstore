@@ -12,6 +12,7 @@ import { AddToCart } from "@/components/add-to-cart";
 import { ProductArt } from "@/components/product-art";
 import { ProductCard } from "@/components/product-card";
 import { Gallery } from "./gallery";
+import { ProductReviews } from "./reviews";
 
 export async function generateMetadata({ params }: PageProps<"/product/[slug]">) {
   const product = await getProduct((await params).slug);
@@ -104,6 +105,10 @@ async function Product({ params }: { params: PageProps<"/product/[slug]">["param
           <p className="mt-6 text-sm leading-relaxed text-muted">{product.description}</p>
         </div>
       </div>
+
+      <Suspense fallback={<div className="mt-14 h-48 animate-pulse rounded-3xl bg-surface-2/50" />}>
+        <ProductReviews productId={product.id} slug={product.slug} />
+      </Suspense>
 
       <Suspense fallback={null}>
         <Similar id={product.id} categoryId={product.categoryId} price={product.price} />

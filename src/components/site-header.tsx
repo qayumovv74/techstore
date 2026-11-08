@@ -25,7 +25,8 @@ export function SiteHeader() {
             <CityBar />
           </Suspense>
           <Link href="/installment" className="hover:text-lilac">Рассрочка 0-0-12</Link>
-          <Link href="/contacts" className="ml-auto hover:text-lilac">Пн–Вс 9:00–21:00 · Контакты</Link>
+          <Link href="/support" className="ml-auto hover:text-lilac">Поддержка</Link>
+          <Link href="/contacts" className="hover:text-lilac">Пн–Вс 9:00–21:00 · Контакты</Link>
         </div>
       </div>
 
@@ -122,7 +123,7 @@ async function UserArea() {
         </Link>
       ) : null}
       <div className="hidden md:block">
-        <MainNav variant="desktop" userName={user?.name ?? null} favCount={favCount} cartCount={cartCount} />
+        <MainNav variant="desktop" userName={user?.name ?? null} avatarUrl={user?.avatarUrl} favCount={favCount} cartCount={cartCount} />
       </div>
     </div>
   );

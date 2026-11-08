@@ -10,6 +10,7 @@ import { Hero3D } from "@/components/ui/hero-3d";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { ScrambleText } from "@/components/scramble-text";
 import { Reveal } from "@/components/reveal";
+import { HomeReviews } from "@/components/home-reviews";
 import { cn } from "@/lib/cn";
 
 const perks = [
@@ -62,6 +63,10 @@ export default function HomePage() {
 
       <Suspense fallback={<GridSkeleton />}>
         <Sections />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <HomeReviews />
       </Suspense>
     </main>
   );

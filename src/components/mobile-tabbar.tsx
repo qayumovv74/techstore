@@ -24,5 +24,5 @@ async function WithCounts() {
       : 0,
     getCartCount(),
   ]);
-  return <MainNav variant="mobile" userName={user?.name ?? null} favCount={favCount} cartCount={cartCount} className="pointer-events-auto" />;
+  return <MainNav variant="mobile" userName={user?.name ?? null} avatarUrl={user?.avatarUrl} favCount={favCount} cartCount={cartCount} className="pointer-events-auto" />;
 }

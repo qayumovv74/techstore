@@ -50,6 +50,13 @@
       "when": 1794002499090,
       "tag": "0006_google_login",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794005480996,
+      "tag": "0007_reviews_support_avatar",
+      "breakpoints": true
     }
   ]
 }

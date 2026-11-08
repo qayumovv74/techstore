@@ -1,12 +1,23 @@
 import Link from "next/link";
+import { CompassIcon, HomeIcon } from "lucide-react";
+import { NotFound } from "@/components/ui/not-found-2";
+import { buttonVariants } from "@/components/ui/button-variants";
 
-export default function NotFound() {
+export default function ProductNotFound() {
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center px-4 py-20 text-center">
-      <p className="text-5xl font-bold text-primary">404</p>
-      <h1 className="mt-3 text-xl font-bold">Такого товара нет</h1>
-      <p className="mt-1 text-sm text-muted">Возможно, его сняли с продажи.</p>
-      <Link href="/catalog" className="mt-6 font-semibold text-lilac hover:text-white">В каталог →</Link>
-    </main>
+    <NotFound
+      title="Такого товара нет"
+      description="Возможно, его сняли с продажи или ссылка устарела."
+      actions={
+        <>
+          <Link href="/catalog" className={buttonVariants({ className: "font-semibold" })}>
+            <CompassIcon aria-hidden /> В каталог
+          </Link>
+          <Link href="/" className={buttonVariants({ variant: "outline", className: "font-semibold" })}>
+            <HomeIcon aria-hidden /> На главную
+          </Link>
+        </>
+      }
+    />
   );
 }

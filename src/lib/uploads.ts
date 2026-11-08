@@ -1,5 +1,5 @@
 import "server-only";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, unlink, writeFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 import sharp from "sharp";
@@ -36,4 +36,34 @@ export async function saveProductImage(file: File) {
   await mkdir(path.join(/* turbopackIgnore: true */ UPLOAD_DIR, "products"), { recursive: true });
   await writeFile(path.join(/* turbopackIgnore: true */ UPLOAD_DIR, "products", name), output);
   return `/uploads/products/${name}`;
+}
+
+/** Аватар → квадрат 320×320 WebP по центру кадра, без EXIF */
+export async function saveAvatar(file: File) {
+  if (!ACCEPTED.includes(file.type)) throw new UploadError("Нужна картинка JPG, PNG или WebP");
+  if (file.size > MAX_UPLOAD_BYTES) throw new UploadError("Файл больше 8 МБ");
+
+  let output: Buffer;
+  try {
+    output = await sharp(Buffer.from(await file.arrayBuffer()))
+      .rotate()
+      .resize(320, 320, { fit: "cover", position: "attention" })
+      .webp({ quality: 84 })
+      .toBuffer();
+  } catch {
+    throw new UploadError("Файл не похож на изображение");
+  }
+
+  const name = `${randomUUID()}.webp`;
+  await mkdir(path.join(/* turbopackIgnore: true */ UPLOAD_DIR, "avatars"), { recursive: true });
+  await writeFile(path.join(/* turbopackIgnore: true */ UPLOAD_DIR, "avatars", name), output);
+  return `/uploads/avatars/${name}`;
+}
+
+/** Удаляет файл, загруженный через сайт (/uploads/…). Чужие пути и ошибки молча игнорируем. */
+export async function removeUpload(url: string | null | undefined) {
+  if (!url?.startsWith("/uploads/")) return;
+  const file = path.resolve(/* turbopackIgnore: true */ UPLOAD_DIR, ...url.slice("/uploads/".length).split("/"));
+  if (!file.startsWith(UPLOAD_DIR + path.sep)) return;
+  await unlink(file).catch(() => {});
 }

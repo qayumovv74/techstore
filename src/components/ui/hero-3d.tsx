@@ -1,17 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { cn } from "@/lib/cn";
 
 /**
  * 3D-сцена для главной и страниц входа: смартфон из «фиолетового титана» с экраном в цветах
- * сайта и парящие вокруг стеклянные шары, кольцо и капсулы. Three.js грузится отдельным
+ * сайта и парящие вокруг стеклянные шары, кольцо и капсулы. В кабинете (variant="account")
+ * вместо телефона — переливающийся узел. Three.js грузится отдельным
  * чанком только здесь. Вне экрана и в фоновой вкладке рендер стоит, курсор слегка
  * поворачивает сцену, при prefers-reduced-motion — один статичный кадр.
  */
-export function Hero3D({ className, variant = "hero" }: { className?: string; variant?: "hero" | "auth" }) {
+export function Hero3D({ className, variant = "hero" }: { className?: string; variant?: "hero" | "auth" | "account" }) {
   const hostRef = useRef<HTMLDivElement>(null);
-  const [ready, setReady] = useState(false);
+  const glowRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -45,7 +46,8 @@ export function Hero3D({ className, variant = "hero" }: { className?: string; va
       scene.environment = envTex;
 
       const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
-      camera.position.set(0, 0, variant === "auth" ? 11 : 10);
+      const baseZ = variant === "auth" ? 11 : variant === "account" ? 8.5 : 10;
+      camera.position.set(0, 0, baseZ);
 
       scene.add(new THREE.AmbientLight(0x8a78c8, 0.35));
       const key = new THREE.DirectionalLight(0xffffff, 1.6);
@@ -123,7 +125,18 @@ export function Hero3D({ className, variant = "hero" }: { className?: string; va
         lens.position.z -= 0.004;
         phone.add(ring, lens);
       }
-      scene.add(phone);
+      let knot: import("three").Mesh | null = null;
+      if (variant === "account") {
+        knot = new THREE.Mesh(
+          new THREE.TorusKnotGeometry(0.75, 0.24, 220, 32),
+          new THREE.MeshPhysicalMaterial({
+            color: 0x916bbf, metalness: 0.6, roughness: 0.18, clearcoat: 1, iridescence: 1, iridescenceIOR: 1.4, iridescenceThicknessMinimum: 180, iridescenceThicknessMaximum: 620,
+          }),
+        );
+        scene.add(knot);
+      } else {
+        scene.add(phone);
+      }
 
       // ─── парящие объекты ───
       const glass = new THREE.MeshPhysicalMaterial({
@@ -152,7 +165,7 @@ export function Hero3D({ className, variant = "hero" }: { className?: string; va
         renderer.setSize(w, h, false);
         camera.aspect = w / h;
         // на узком холсте отодвигаем камеру, чтобы сцена не обрезалась
-        camera.position.z = (variant === "auth" ? 11 : 10) * Math.max(1, 0.85 / camera.aspect);
+        camera.position.z = baseZ * Math.max(1, 0.85 / camera.aspect);
         camera.updateProjectionMatrix();
         renderOnce();
       };
@@ -164,7 +177,7 @@ export function Hero3D({ className, variant = "hero" }: { className?: string; va
       };
 
       const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const clock = new THREE.Clock();
+      let lastTick = performance.now();
       let t = 0;
       let raf = 0;
       let onScreen = true;
@@ -177,6 +190,11 @@ export function Hero3D({ className, variant = "hero" }: { className?: string; va
         phone.rotation.x = 0.06 + Math.sin(t * 0.27) * 0.06 + pointer.y * 0.18;
         phone.rotation.z = Math.sin(t * 0.2) * 0.04;
         phone.position.y = Math.sin(t * 0.8) * 0.08;
+        if (knot) {
+          knot.rotation.x = t * 0.25 + pointer.y * 0.3;
+          knot.rotation.y = t * 0.35 + pointer.x * 0.4;
+          knot.position.y = Math.sin(t * 0.8) * 0.1;
+        }
         for (const f of floaters) {
           f.mesh.position.set(
             f.base.x + Math.sin(t * f.speed * 0.6 + f.phase) * 0.12,
@@ -192,12 +210,14 @@ export function Hero3D({ className, variant = "hero" }: { className?: string; va
         frame(0);
       }
       const tick = () => {
-        frame(Math.min(clock.getDelta(), 0.05));
+        const t0 = performance.now();
+        frame(Math.min((t0 - lastTick) / 1000, 0.05));
+        lastTick = t0;
         raf = requestAnimationFrame(tick);
       };
       const start = () => {
         if (raf || reduced || !onScreen || document.hidden) return;
-        clock.getDelta();
+        lastTick = performance.now();
         raf = requestAnimationFrame(tick);
       };
       const stop = () => {
@@ -219,7 +239,9 @@ export function Hero3D({ className, variant = "hero" }: { className?: string; va
 
       resize();
       start();
-      setReady(true);
+      // проявляем сцену напрямую через DOM: состояние React тут не нужно
+      host.style.opacity = "1";
+      if (glowRef.current) glowRef.current.style.opacity = "0.7";
 
       cleanup = () => {
         stop();
@@ -227,6 +249,7 @@ export function Hero3D({ className, variant = "hero" }: { className?: string; va
         io.disconnect();
         document.removeEventListener("visibilitychange", onVisibility);
         window.removeEventListener("pointermove", onPointer);
+        if (!phone.parent) scene.add(phone); // чтобы освободить и его геометрию
         scene.traverse((o) => {
           const m = o as import("three").Mesh;
           m.geometry?.dispose();
@@ -251,13 +274,11 @@ export function Hero3D({ className, variant = "hero" }: { className?: string; va
     <div className={cn("relative", className)}>
       {/* свечение под сценой — видно сразу и остаётся, если WebGL недоступен */}
       <div
+        ref={glowRef}
         aria-hidden
-        className={cn(
-          "pointer-events-none absolute inset-[12%] rounded-full bg-[radial-gradient(circle,rgb(145_107_191/0.45),transparent_65%)] blur-2xl transition-opacity duration-700",
-          ready ? "opacity-70" : "opacity-100",
-        )}
+        className="pointer-events-none absolute inset-[12%] rounded-full bg-[radial-gradient(circle,rgb(145_107_191/0.45),transparent_65%)] blur-2xl transition-opacity duration-700"
       />
-      <div ref={hostRef} className={cn("absolute inset-0 transition-opacity duration-700", ready ? "opacity-100" : "opacity-0")} />
+      <div ref={hostRef} className="absolute inset-0 opacity-0 transition-opacity duration-700" />
     </div>
   );
 }

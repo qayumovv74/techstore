@@ -2,7 +2,6 @@
 
 import { and, count, eq, like, notInArray, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db, schema } from "@/db";
 import { requireRole, STAFF_ROLES } from "@/lib/auth";
@@ -37,7 +36,10 @@ async function uniqueSlug(base: string) {
   return `${base}-${i}`;
 }
 
-export async function saveProduct(productId: string | null, _: ActionState, fd: FormData): Promise<ActionState> {
+/** Новый товар: форма не уходит со страницы, а показывает, что добавили, и очищается */
+export type ProductState = ActionState & { created?: { id: string; slug: string; name: string } };
+
+export async function saveProduct(productId: string | null, _: ProductState, fd: FormData): Promise<ProductState> {
   await requireRole(["ADMIN"], "/admin/products");
   const raw = {
     name: String(fd.get("name") ?? ""),
@@ -72,6 +74,7 @@ export async function saveProduct(productId: string | null, _: ActionState, fd: 
   }
   const keep = fd.getAll("keepImage").map(String).filter((x) => z.uuid().safeParse(x).success);
 
+  let slug: string | undefined; // для ссылки «Открыть на витрине» после создания
   const result = await db.transaction(async (tx) => {
     let id = productId;
     const values = {
@@ -104,8 +107,9 @@ export async function saveProduct(productId: string | null, _: ActionState, fd: 
       const [created] = await tx
         .insert(schema.products)
         .values({ ...values, slug: await uniqueSlug(slugify(`${d.brand} ${d.name}`) || "tovar") })
-        .returning({ id: schema.products.id });
+        .returning({ id: schema.products.id, slug: schema.products.slug });
       id = created.id;
+      slug = created.slug;
       await tx.insert(schema.stock).values({ productId: id, quantity: d.quantity });
     }
 
@@ -119,7 +123,14 @@ export async function saveProduct(productId: string | null, _: ActionState, fd: 
 
   if ("error" in result) return { error: result.error, values: raw };
   revalidatePath("/", "layout");
-  if (!productId) redirect(`/admin/products/${result.id}?created=1`);
+  if (!productId) {
+    return {
+      ok: true,
+      message: `Товар «${d.name}» добавлен`,
+      nonce: Date.now(),
+      created: { id: result.id, slug: slug ?? "", name: d.name },
+    };
+  }
   return { ok: true, message: "Сохранено", nonce: Date.now() };
 }
 

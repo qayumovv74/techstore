@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Suspense, useState } from "react";
 import { LiquidNavbar, NimbusIcons, type LiquidNavItem } from "./ui/liquid-glass-navbar";
@@ -7,6 +8,7 @@ import { LiquidNavbar, NimbusIcons, type LiquidNavItem } from "./ui/liquid-glass
 type Props = {
   variant: "desktop" | "mobile";
   userName: string | null;
+  avatarUrl?: string | null;
   favCount: number;
   cartCount: number;
   className?: string;
@@ -14,7 +16,7 @@ type Props = {
 
 type Item = LiquidNavItem & { key: string; match: (p: string) => boolean };
 
-function buildItems({ variant, userName, favCount, cartCount }: Props): Item[] {
+function buildItems({ variant, userName, avatarUrl, favCount, cartCount }: Props): Item[] {
   const all: Item[] = [
     { key: "home", label: "Главная", href: "/", icon: NimbusIcons.home, fx: "glow", match: (p) => p === "/" },
     {
@@ -31,7 +33,11 @@ function buildItems({ variant, userName, favCount, cartCount }: Props): Item[] {
       key: "user",
       label: userName ? userName.split(" ")[0] : "Войти",
       href: userName ? "/account" : "/login",
-      icon: NimbusIcons.user,
+      icon: avatarUrl ? (
+        <Image src={avatarUrl} alt="" width={22} height={22} className="size-[22px] rounded-full object-cover ring-1 ring-white/40" />
+      ) : (
+        NimbusIcons.user
+      ),
       fx: "wave",
       match: (p) =>
         (p.startsWith("/account") && p !== "/account/favorites") || p === "/login" || p === "/register" || p.endsWith("-password"),

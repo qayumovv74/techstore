@@ -2,10 +2,12 @@
 
 /* eslint-disable @next/next/no-img-element -- превью только что выбранных файлов: blob: URL, next/image тут не нужен */
 import Image from "next/image";
-import { useActionState, useState } from "react";
+import Link from "next/link";
+import { useActionState, useEffect, useState } from "react";
+import { CheckCircle2 } from "lucide-react";
 import { Button, Field } from "@/components/ui";
-import type { ActionState } from "@/lib/validation";
-import { saveProduct } from "./actions";
+import { Toast } from "@/components/ui/toast";
+import { saveProduct, type ProductState } from "./actions";
 
 type Img = { id: string; url: string };
 type Initial = {
@@ -22,9 +24,49 @@ type Initial = {
   images: Img[];
 };
 
-export function ProductForm({ initial, categories }: { initial: Initial; categories: { id: string; name: string }[] }) {
-  const [state, action, pending] = useActionState<ActionState, FormData>(saveProduct.bind(null, initial.id), {});
-  const v = state.values ?? {};
+type FormProps = { initial: Initial; categories: { id: string; name: string }[] };
+
+export function ProductForm({ initial, categories }: FormProps) {
+  const [state, action, pending] = useActionState<ProductState, FormData>(saveProduct.bind(null, initial.id), {});
+  const created = state.created;
+
+  // после добавления — наверх, к сообщению: форма уже пустая и готова к следующему товару
+  useEffect(() => {
+    if (created) window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [created]);
+
+  return (
+    <>
+      {created ? (
+        <div role="status" className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-violet/50 bg-violet/10 px-4 py-3 text-sm">
+          <CheckCircle2 className="size-5 shrink-0 text-lilac" aria-hidden />
+          <span className="font-semibold">{state.message}</span>
+          <span className="text-muted">Форма очищена — можно добавлять следующий.</span>
+          <span className="flex gap-3 sm:ml-auto">
+            <Link href={`/product/${created.slug}`} className="font-semibold text-lilac hover:text-white">Открыть на витрине</Link>
+            <Link href={`/admin/products/${created.id}`} className="font-semibold text-lilac hover:text-white">Редактировать</Link>
+          </span>
+        </div>
+      ) : null}
+      <Toast nonce={created ? state.nonce : undefined}>
+        <p className="font-semibold">Товар добавлен</p>
+        <p className="truncate text-muted">{created?.name}</p>
+      </Toast>
+      {/* key: после сохранения поля, характеристики и превью фото сбрасываются */}
+      <FormBody key={state.nonce ?? "form"} initial={initial} categories={categories} state={state} action={action} pending={pending} />
+    </>
+  );
+}
+
+function FormBody({
+  initial,
+  categories,
+  state,
+  action,
+  pending,
+}: FormProps & { state: ProductState; action: (fd: FormData) => void; pending: boolean }) {
+  const isNewSaved = !initial.id && state.ok; // новый товар сохранён — старые значения не подставляем
+  const v = isNewSaved ? {} : (state.values ?? {});
   const fe = state.fieldErrors ?? {};
   // у строк стабильные id: поля неконтролируемые, и при удалении строки значения не должны «съезжать»
   const [specs, setSpecs] = useState(() =>
@@ -43,7 +85,7 @@ export function ProductForm({ initial, categories }: { initial: Initial; categor
     });
 
   return (
-    <form action={action} className="grid gap-6 lg:grid-cols-[1fr_320px]" key={state.nonce ?? "form"}>
+    <form action={action} className="grid gap-6 lg:grid-cols-[1fr_320px]">
       <div className="flex flex-col gap-6">
         <section className="grid gap-4 rounded-2xl border border-border bg-surface p-5 sm:grid-cols-2">
           <div className="sm:col-span-2">
@@ -125,7 +167,7 @@ export function ProductForm({ initial, categories }: { initial: Initial; categor
           Показывать на витрине
         </label>
         {state.error ? <p role="alert" className="rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger">{state.error}</p> : null}
-        {state.ok ? <p role="status" className="text-sm font-medium text-primary">✓ {state.message}</p> : null}
+        {state.ok && initial.id ? <p role="status" className="text-sm font-medium text-lilac">✓ {state.message}</p> : null}
         <Button disabled={pending}>{pending ? "Сохраняем…" : initial.id ? "Сохранить" : "Создать товар"}</Button>
       </aside>
     </form>

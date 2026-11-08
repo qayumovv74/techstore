@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
+import { removeUpload, saveAvatar, UploadError } from "@/lib/uploads";
 import { addressSchema, passwordSchema, profileSchema, type ActionState } from "@/lib/validation";
 
 const str = (fd: FormData, k: string) => String(fd.get(k) ?? "");
@@ -106,4 +107,29 @@ export async function setDefaultAddress(fd: FormData) {
     await tx.update(schema.addresses).set({ isDefault: true }).where(eq(schema.addresses.id, id));
   });
   revalidatePath("/account", "layout");
+}
+
+export async function updateAvatar(_: ActionState, fd: FormData): Promise<ActionState> {
+  const user = await requireUser("/account/profile");
+  const file = fd.get("avatar");
+  if (!(file instanceof File) || file.size === 0) return { error: "Выберите фото" };
+
+  let url: string;
+  try {
+    url = await saveAvatar(file);
+  } catch (e) {
+    if (e instanceof UploadError) return { error: e.message };
+    throw e;
+  }
+  await db.update(schema.users).set({ avatarUrl: url }).where(eq(schema.users.id, user.id));
+  await removeUpload(user.avatarUrl); // старый файл больше не нужен
+  revalidatePath("/", "layout");
+  return { ok: true, message: "Фото обновлено", nonce: Date.now() };
+}
+
+export async function removeAvatar() {
+  const user = await requireUser("/account/profile");
+  await db.update(schema.users).set({ avatarUrl: null }).where(eq(schema.users.id, user.id));
+  await removeUpload(user.avatarUrl);
+  revalidatePath("/", "layout");
 }

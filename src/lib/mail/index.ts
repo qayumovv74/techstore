@@ -49,11 +49,26 @@ async function getTransport() {
 export const mailIsReal = () =>
   process.env.MAIL_TRANSPORT !== "json" && Boolean(process.env.SMTP_HOST && process.env.SMTP_USER);
 
-export async function sendMail(to: string, subject: string, html: string, text: string): Promise<Sent> {
+type MailOptions = {
+  /** куда пойдёт ответ, если получатель нажмёт «Ответить» */
+  replyTo?: string;
+  /** имя отправителя вместо стандартного «TechStore» */
+  fromName?: string;
+};
+
+/** Адрес отправителя из MAIL_FROM («TechStore <x@y>») или SMTP_USER */
+function senderAddress() {
+  const fromEnv = process.env.MAIL_FROM?.match(/<([^>]+)>/)?.[1] ?? process.env.MAIL_FROM;
+  return fromEnv || process.env.SMTP_USER || "no-reply@techstore.local";
+}
+
+export async function sendMail(to: string, subject: string, html: string, text: string, opts: MailOptions = {}): Promise<Sent> {
   try {
     const t = await getTransport();
-    const from = process.env.MAIL_FROM ?? `TechStore <${process.env.SMTP_USER ?? "no-reply@techstore.local"}>`;
-    const info = await t.sendMail({ from, to, subject, html, text });
+    const from = opts.fromName
+      ? { name: opts.fromName, address: senderAddress() }
+      : process.env.MAIL_FROM ?? `TechStore <${senderAddress()}>`;
+    const info = await t.sendMail({ from, to, subject, html, text, replyTo: opts.replyTo });
     const previewUrl = isTest ? nodemailer.getTestMessageUrl(info) || undefined : undefined;
     console.log(`[mail] «${subject}» → ${to}${previewUrl ? ` · просмотр: ${previewUrl}` : ""}`);
     return { ok: true, previewUrl };
