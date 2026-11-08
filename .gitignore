@@ -53,6 +53,8 @@ next-env.d.ts
 
 # кэш исходников фото (scripts/photos)
 /.photos-cache/
+# сгенерированные фото до обработки (npm run images:ai)
+/.photos-ai/
 
 # фото, загруженные через админку
 /uploads/
