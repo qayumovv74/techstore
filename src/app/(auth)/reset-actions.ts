@@ -1,14 +1,15 @@
 "use server";
 
 import { createHash, randomBytes } from "node:crypto";
-import bcrypt from "bcryptjs";
-import { and, count, eq, gt, isNull } from "drizzle-orm";
+import { and, count, eq, gt, isNull, sql } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { db, schema } from "@/db";
 import { createSession } from "@/lib/session";
 import { appUrl, mailIsReal, sendMail } from "@/lib/mail";
 import { resetPasswordMail } from "@/lib/mail/templates";
 import { recordAuthEvent } from "@/lib/audit";
+import { hashPassword } from "@/lib/password";
+import { limitByIp, tooManyMessage } from "@/lib/rate-limit";
 import { forgotSchema, resetSchema, type ActionState } from "@/lib/validation";
 
 const TTL_MIN = 30;
@@ -19,6 +20,8 @@ export type ForgotState = ActionState & { devLink?: string; previewUrl?: string 
 export async function requestReset(_: ForgotState, fd: FormData): Promise<ForgotState> {
   const parsed = forgotSchema.safeParse({ email: String(fd.get("email") ?? "") });
   if (!parsed.success) return { fieldErrors: parsed.error.flatten().fieldErrors, values: { email: String(fd.get("email") ?? "") } };
+  const byIp = await limitByIp("forgot");
+  if (!byIp.ok) return { error: tooManyMessage(byIp.retryAfter), values: { email: parsed.data.email } };
 
   // Ответ одинаковый, есть такой email или нет — чтобы нельзя было проверять, кто зарегистрирован
   const done: ForgotState = {
@@ -73,11 +76,16 @@ export async function resetPassword(_: ActionState, fd: FormData): Promise<Actio
   if (!reset) return { error: "Ссылка устарела или уже использована. Запросите новую." };
 
   const user = await db.transaction(async (tx) => {
+    // новый пароль закрывает все старые сессии; ссылка пришла на почту — значит, адрес подтверждён
     const [u] = await tx
       .update(schema.users)
-      .set({ passwordHash: await bcrypt.hash(parsed.data.next, 10) })
+      .set({
+        passwordHash: await hashPassword(parsed.data.next),
+        sessionVersion: sql`${schema.users.sessionVersion} + 1`,
+        emailVerifiedAt: sql`coalesce(${schema.users.emailVerifiedAt}, now())`,
+      })
       .where(eq(schema.users.id, reset.userId))
-      .returning({ id: schema.users.id, role: schema.users.role, email: schema.users.email });
+      .returning({ id: schema.users.id, role: schema.users.role, email: schema.users.email, sv: schema.users.sessionVersion });
     // гасим все ссылки этого пользователя, не только текущую
     await tx
       .update(schema.passwordResets)
@@ -86,7 +94,7 @@ export async function resetPassword(_: ActionState, fd: FormData): Promise<Actio
     return u;
   });
 
-  await createSession({ userId: user.id, role: user.role });
+  await createSession({ userId: user.id, role: user.role, sv: user.sv });
   await recordAuthEvent("PASSWORD_RESET", user.email, user.id);
   redirect("/account?reset=1");
 }

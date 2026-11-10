@@ -16,6 +16,7 @@
     "db:studio": "drizzle-kit studio",
     "typecheck": "tsc --noEmit",
     "images:import": "tsx --env-file=.env scripts/import-images.ts",
+    "staff": "node --env-file=.env scripts/staff.mjs",
     "test:e2e": "playwright test",
     "db:stop": "tsx scripts/local-db.ts stop",
     "check": "npm run lint && npm run typecheck"
@@ -23,6 +24,7 @@
   "dependencies": {
     "@base-ui/react": "^1.9.0",
     "@fontsource-variable/jetbrains-mono": "^5.3.0",
+    "@node-rs/argon2": "^2.2.2",
     "animejs": "^4.5.0",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",

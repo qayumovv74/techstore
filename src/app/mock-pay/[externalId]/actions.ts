@@ -6,12 +6,14 @@ import { revalidatePath } from "next/cache";
 import { db, schema } from "@/db";
 import { sendWebhook } from "@/lib/payments/mock";
 import { detectBrand, luhn } from "@/lib/card-brand";
+import { mockPaymentsEnabled } from "@/lib/demo";
 
 export type PayState = { error?: string };
 
 // Здесь код «на стороне шлюза»: проверить карту, списать деньги, уведомить магазин вебхуком.
 // Данные карты нигде не сохраняются и не пишутся в лог — только решение «прошла / отказ».
 export async function processPayment(externalId: string, _: PayState, fd: FormData): Promise<PayState> {
+  if (!mockPaymentsEnabled()) return { error: "Тестовая оплата выключена" };
   const card = String(fd.get("card") ?? "").replace(/\D/g, "");
   const exp = String(fd.get("exp") ?? "");
   const cvc = String(fd.get("cvc") ?? "");

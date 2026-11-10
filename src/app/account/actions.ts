@@ -1,11 +1,13 @@
 "use server";
 
-import bcrypt from "bcryptjs";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
+import { createSession, revokeSessions } from "@/lib/session";
+import { hashPassword, verifyPassword } from "@/lib/password";
+import { recordAuthEvent } from "@/lib/audit";
 import { removeUpload, saveAvatar, UploadError } from "@/lib/uploads";
 import { addressSchema, passwordSchema, profileSchema, type ActionState } from "@/lib/validation";
 
@@ -31,14 +33,25 @@ export async function changePassword(_: ActionState, fd: FormData): Promise<Acti
   if (!parsed.success) return { fieldErrors: parsed.error.flatten().fieldErrors };
 
   const row = await db.query.users.findFirst({ where: eq(schema.users.id, user.id), columns: { passwordHash: true } });
-  if (!row || !(await bcrypt.compare(parsed.data.current, row.passwordHash))) {
+  if (!row || !(await verifyPassword(parsed.data.current, row.passwordHash))) {
     return { fieldErrors: { current: ["Неверный текущий пароль"] } };
   }
   await db
     .update(schema.users)
-    .set({ passwordHash: await bcrypt.hash(parsed.data.next, 10) })
+    .set({ passwordHash: await hashPassword(parsed.data.next) })
     .where(eq(schema.users.id, user.id));
-  return { ok: true, message: "Пароль изменён", nonce: Date.now() };
+  // если пароль меняют из-за утечки, чужие сессии должны закрыться; это устройство остаётся в аккаунте
+  await createSession(await revokeSessions(user.id));
+  await recordAuthEvent("PASSWORD_CHANGED", user.email, user.id);
+  return { ok: true, message: "Пароль изменён. На других устройствах нужно войти заново.", nonce: Date.now() };
+}
+
+/** «Выйти на других устройствах»: все сессии, кроме текущей, перестают действовать */
+export async function logoutOtherDevices(): Promise<ActionState> {
+  const user = await requireUser("/account/profile");
+  await createSession(await revokeSessions(user.id));
+  await recordAuthEvent("SESSIONS_REVOKED", user.email, user.id);
+  return { ok: true, message: "Готово: на других устройствах нужно войти заново.", nonce: Date.now() };
 }
 
 const MAX_ADDRESSES = 10;

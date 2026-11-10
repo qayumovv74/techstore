@@ -7,6 +7,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { MobileTabbar } from "@/components/mobile-tabbar";
 import { SilkBackground } from "@/components/ui/silk-background";
 import { Assistant } from "@/components/assistant";
+import { DemoBanner } from "@/components/demo-banner";
 
 export const metadata: Metadata = {
   title: { default: "TechStore — техника с доставкой по Москве", template: "%s · TechStore" },
@@ -23,6 +24,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="ru" className="dark h-full antialiased">
       <body className="flex min-h-full flex-col pb-24 md:pb-0">
         <SilkBackground />
+        <Suspense fallback={null}>
+          <DemoBanner />
+        </Suspense>
         <SiteHeader />
         <Suspense>{children}</Suspense>
         <SiteFooter />

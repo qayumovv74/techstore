@@ -41,7 +41,7 @@ function load(): Msg[] {
 
 const AssistantAvatar = ({ className }: { className?: string }) => (
   <span className={cn("grid size-8 place-items-center rounded-full bg-linear-to-br from-violet to-indigo ring-1 ring-white/20", className)}>
-    <Image src="/brand/mark-silver.png" alt="" width={22} height={12} className="h-auto w-[22px]" />
+    <Image src="/brand/mark-silver.png" alt="" width={730} height={372} className="h-auto w-[22px]" />
   </span>
 );
 

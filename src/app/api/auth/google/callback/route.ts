@@ -1,5 +1,3 @@
-import { randomBytes } from "node:crypto";
-import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { NextResponse, type NextRequest } from "next/server";
 import { db, schema } from "@/db";
@@ -8,6 +6,7 @@ import { createSession } from "@/lib/session";
 import { mergeGuestCart } from "@/lib/cart";
 import { recordAuthEvent } from "@/lib/audit";
 import { safeNext } from "@/lib/safe-next";
+import { unusablePasswordHash } from "@/lib/password";
 
 type Saved = { state: string; verifier: string; next: string };
 
@@ -47,19 +46,30 @@ export async function GET(req: NextRequest) {
   if (!user) {
     const byEmail = await db.query.users.findFirst({ where: eq(schema.users.email, profile.email) });
     if (byEmail) {
-      [user] = await db.update(schema.users).set({ googleId: profile.sub }).where(eq(schema.users.id, byEmail.id)).returning();
+      // Google подтвердил, что почта принадлежит этому человеку
+      [user] = await db
+        .update(schema.users)
+        .set({ googleId: profile.sub, emailVerifiedAt: byEmail.emailVerifiedAt ?? new Date() })
+        .where(eq(schema.users.id, byEmail.id))
+        .returning();
     } else {
       // пароля нет: случайный хеш, задать свой можно через «Забыли пароль?»
-      const passwordHash = await bcrypt.hash(randomBytes(32).toString("hex"), 10);
+      const passwordHash = await unusablePasswordHash();
       [user] = await db
         .insert(schema.users)
-        .values({ email: profile.email, name: profile.name ?? profile.email.split("@")[0], passwordHash, googleId: profile.sub })
+        .values({
+          email: profile.email,
+          name: profile.name ?? profile.email.split("@")[0],
+          passwordHash,
+          googleId: profile.sub,
+          emailVerifiedAt: new Date(),
+        })
         .returning();
       event = "REGISTER";
     }
   }
 
-  await createSession({ userId: user.id, role: user.role });
+  await createSession({ userId: user.id, role: user.role, sv: user.sessionVersion });
   await mergeGuestCart(user.id);
   await recordAuthEvent(event, user.email, user.id);
 

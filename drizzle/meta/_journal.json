@@ -64,6 +64,13 @@
       "when": 1794330595366,
       "tag": "0008_drop_photo_credits",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794335508830,
+      "tag": "0009_auth_hardening",
+      "breakpoints": true
     }
   ]
 }

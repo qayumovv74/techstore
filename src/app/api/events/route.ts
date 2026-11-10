@@ -1,4 +1,4 @@
-import { readSession } from "@/lib/session";
+import { getCurrentUser } from "@/lib/auth";
 import { subscribe, type LiveEvent } from "@/lib/realtime";
 
 /**
@@ -7,14 +7,15 @@ import { subscribe, type LiveEvent } from "@/lib/realtime";
  *   order:<id>    — один заказ (его владелец или сотрудник)
  */
 export async function GET(req: Request) {
-  const session = await readSession();
-  if (!session) return new Response("unauthorized", { status: 401 });
-  const staff = session.role !== "CUSTOMER";
+  // права и действительность сессии — из базы, а не только из токена
+  const user = await getCurrentUser();
+  if (!user) return new Response("unauthorized", { status: 401 });
+  const staff = user.role !== "CUSTOMER";
   const topics = new URL(req.url).searchParams.getAll("topic");
 
   const allowed = (e: LiveEvent) => {
     if (topics.includes("orders") && staff) return true;
-    if (e.orderId && topics.includes(`order:${e.orderId}`)) return staff || e.userId === session.userId;
+    if (e.orderId && topics.includes(`order:${e.orderId}`)) return staff || e.userId === user.id;
     return false;
   };
 

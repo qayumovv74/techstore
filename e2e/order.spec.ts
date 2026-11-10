@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { confirmEmail } from "./helpers";
 
 async function signUpWithCart(page: Page, product = "apple-airpods-4") {
   const email = `order-${Date.now()}-${Math.random().toString(36).slice(2, 6)}@test.ru`;
@@ -9,6 +10,7 @@ async function signUpWithCart(page: Page, product = "apple-airpods-4") {
   await page.getByLabel("Пароль").filter({ visible: true }).fill("secret123");
   await page.getByRole("button", { name: "Создать аккаунт" }).filter({ visible: true }).click();
   await page.waitForURL("**/account");
+  await confirmEmail(page); // без подтверждённой почты заказ не оформить
 
   await page.goto(`/product/${product}`);
   await page.waitForLoadState("networkidle");

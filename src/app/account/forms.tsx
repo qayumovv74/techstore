@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import { Button, Field } from "@/components/ui";
 import { PhoneInput } from "@/components/phone-input";
 import type { ActionState } from "@/lib/validation";
-import { addAddress, changePassword, updateProfile } from "./actions";
+import { addAddress, changePassword, logoutOtherDevices, updateProfile } from "./actions";
 
 function Status({ state }: { state: ActionState }) {
   if (state.error) return <p role="alert" className="rounded-xl bg-danger/10 px-3.5 py-2.5 text-sm text-danger">{state.error}</p>;
@@ -39,6 +39,16 @@ export function PasswordForm() {
         <Button disabled={pending}>{pending ? "Меняю…" : "Сменить пароль"}</Button>
         <Status state={state} />
       </div>
+    </form>
+  );
+}
+
+export function SessionsForm() {
+  const [state, action, pending] = useActionState<ActionState, FormData>(logoutOtherDevices, {});
+  return (
+    <form action={action} className="flex flex-wrap items-center gap-4">
+      <Button variant="ghost" disabled={pending}>{pending ? "Выходим…" : "Выйти на других устройствах"}</Button>
+      <Status state={state} />
     </form>
   );
 }

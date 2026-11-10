@@ -11,7 +11,7 @@ import { db, schema } from "@/db";
 import type { Role } from "@/db/schema";
 import { readSession } from "./session";
 
-export type CurrentUser = { id: string; name: string; email: string; role: Role; avatarUrl: string | null };
+export type CurrentUser = { id: string; name: string; email: string; role: Role; avatarUrl: string | null; emailVerified: boolean };
 
 /** Пользователь или null. cache() — один запрос к БД на рендер. */
 export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
@@ -20,9 +20,18 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
 
   const user = await db.query.users.findFirst({
     where: eq(schema.users.id, session.userId),
-    columns: { id: true, name: true, email: true, role: true, avatarUrl: true },
+    columns: { id: true, name: true, email: true, role: true, avatarUrl: true, emailVerifiedAt: true, sessionVersion: true },
   });
-  return user ?? null;
+  // пароль сменили или нажали «Выйти на других устройствах» — старые сессии больше не действуют
+  if (!user || user.sessionVersion !== session.sv) return null;
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    avatarUrl: user.avatarUrl,
+    emailVerified: user.emailVerifiedAt !== null,
+  };
 });
 
 export async function requireUser(next = "/account") {

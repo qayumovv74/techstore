@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import { ShieldCheck } from "lucide-react";
 import { db, schema } from "@/db";
 import { formatPrice } from "@/lib/format";
+import { mockPaymentsEnabled } from "@/lib/demo";
 import { PayForm } from "./pay-form";
 
 export const metadata: Metadata = { title: "Тестовая оплата", robots: { index: false } };
@@ -27,6 +28,7 @@ export default function MockPayPage({ params }: PageProps<"/mock-pay/[externalId
 
 async function Gateway({ params }: { params: PageProps<"/mock-pay/[externalId]">["params"] }) {
   const { externalId } = await params;
+  if (!mockPaymentsEnabled()) notFound();
   const payment = await db.query.payments.findFirst({
     where: eq(schema.payments.externalId, externalId),
     with: { order: { columns: { id: true, number: true, status: true } } },

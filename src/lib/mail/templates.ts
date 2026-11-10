@@ -29,6 +29,16 @@ export function resetPasswordMail(name: string, link: string, minutes: number) {
   return { subject, html, text };
 }
 
+export function verifyEmailMail(name: string, link: string, hours: number) {
+  const subject = "Подтвердите почту";
+  const html = layout(subject, `<p>${esc(name)}, спасибо за регистрацию в TechStore!</p>
+<p>Подтвердите, что это ваш адрес — после этого можно оформлять заказы. Ссылка действует ${hours} часа:</p>
+<p>${button(link, "Подтвердить почту")}</p>
+<p style="color:#4b3f6b;font-size:13px">Если вы не регистрировались — просто удалите письмо.</p>`);
+  const text = `${name}, подтвердите почту для TechStore (ссылка действует ${hours} часа): ${link}`;
+  return { subject, html, text };
+}
+
 type MailOrder = {
   id: string;
   number: number;

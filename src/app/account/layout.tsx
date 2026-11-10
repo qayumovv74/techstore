@@ -1,6 +1,9 @@
+import { Suspense } from "react";
 import { logout } from "@/app/(auth)/actions";
 import { AccountNav } from "./account-nav";
 import { Button } from "@/components/ui";
+import { VerifyEmailNotice } from "@/components/verify-email-notice";
+import { getCurrentUser } from "@/lib/auth";
 
 export default function AccountLayout({ children }: LayoutProps<"/account">) {
   return (
@@ -13,8 +16,19 @@ export default function AccountLayout({ children }: LayoutProps<"/account">) {
             <Button variant="ghost" className="w-full justify-start px-4 font-normal text-danger hover:text-danger">Выйти</Button>
           </form>
         </aside>
-        <section className="min-w-0">{children}</section>
+        <section className="flex min-w-0 flex-col gap-6">
+          <Suspense fallback={null}>
+            <EmailNotice />
+          </Suspense>
+          <div className="min-w-0">{children}</div>
+        </section>
       </div>
     </main>
   );
+}
+
+async function EmailNotice() {
+  const user = await getCurrentUser();
+  if (!user || user.emailVerified) return null;
+  return <VerifyEmailNotice email={user.email} />;
 }

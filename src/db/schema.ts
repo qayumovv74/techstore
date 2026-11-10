@@ -58,6 +58,13 @@ export const users = pgTable("users", {
   googleId: text("google_id").unique(),
   /** /uploads/avatars/… — квадрат 320×320 WebP */
   avatarUrl: text("avatar_url"),
+  /** когда человек перешёл по ссылке из письма; null — почта не подтверждена */
+  emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
+  /**
+   * Номер «поколения» сессий. Лежит и в токене сессии; если не совпадает с этим полем,
+   * сессия недействительна. Увеличиваем при смене пароля, смене роли и «Выйти на других устройствах».
+   */
+  sessionVersion: integer("session_version").notNull().default(0),
   ...timestamps,
 });
 
@@ -127,7 +134,15 @@ export const stock = pgTable("stock", {
   updatedAt: timestamps.updatedAt,
 });
 
-export const authEventEnum = pgEnum("auth_event", ["REGISTER", "LOGIN", "LOGIN_FAILED", "PASSWORD_RESET"]);
+export const authEventEnum = pgEnum("auth_event", [
+  "REGISTER",
+  "LOGIN",
+  "LOGIN_FAILED",
+  "PASSWORD_RESET",
+  "PASSWORD_CHANGED",
+  "SESSIONS_REVOKED",
+  "EMAIL_VERIFIED",
+]);
 
 /** Журнал входов: когда, откуда и с какого устройства. Видит только админ. */
 export const authEvents = pgTable(
@@ -142,7 +157,12 @@ export const authEvents = pgTable(
     device: text("device"),
     createdAt: timestamps.createdAt,
   },
-  (t) => [index("auth_events_user_idx").on(t.userId), index("auth_events_created_idx").on(t.createdAt)],
+  (t) => [
+    index("auth_events_user_idx").on(t.userId),
+    index("auth_events_created_idx").on(t.createdAt),
+    // для подсчёта неудачных входов по email за последние минуты
+    index("auth_events_email_idx").on(t.email, t.createdAt),
+  ],
 );
 
 /** Ссылки «Забыли пароль?». Храним только хеш токена — утечка таблицы не даст войти. */
@@ -159,6 +179,22 @@ export const passwordResets = pgTable(
     createdAt: timestamps.createdAt,
   },
   (t) => [index("password_resets_user_idx").on(t.userId)],
+);
+
+/** Ссылки «Подтвердите почту». Как и со сбросом пароля, храним только хеш токена. */
+export const emailVerifications = pgTable(
+  "email_verifications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull().unique(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdAt: timestamps.createdAt,
+  },
+  (t) => [index("email_verifications_user_idx").on(t.userId)],
 );
 
 // ─── Избранное ───────────────────────────────────────────────────

@@ -1,5 +1,6 @@
 import { execSync } from "node:child_process";
 import { Client } from "pg";
+import { E2E_PEPPER } from "./helpers";
 
 const ADMIN_URL = "postgres://techstore:techstore@localhost:5432/postgres";
 const TEST_DB = "postgres://techstore:techstore@localhost:5432/techstore_test";
@@ -12,7 +13,7 @@ export default async function globalSetup() {
   await admin.query("CREATE DATABASE techstore_test");
   await admin.end();
 
-  const env = { ...process.env, DATABASE_URL: TEST_DB };
+  const env = { ...process.env, DATABASE_URL: TEST_DB, PASSWORD_PEPPER: E2E_PEPPER };
   execSync("npx drizzle-kit migrate", { env, stdio: "inherit" });
   execSync("npx tsx scripts/seed.ts", { env, stdio: "inherit" });
   execSync("npx tsx scripts/import-images.ts", { env, stdio: "inherit" });
@@ -25,7 +26,7 @@ export default async function globalSetup() {
     "/", "/catalog", "/product/apple-airpods-4", "/login", "/register", "/forgot-password", "/reset-password",
     "/cart", "/checkout", "/delivery", "/account", "/account/orders", "/account/profile", "/account/addresses",
     "/account/favorites", "/admin", "/admin/orders", "/admin/users", "/admin/products", "/admin/products/new",
-    "/admin/categories", "/api/health",
+    "/admin/categories", "/support", "/verify-email", "/api/health",
   ];
   for (const route of routes) {
     await fetch(base + route, { redirect: "manual" }).catch(() => {});

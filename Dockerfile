@@ -27,6 +27,10 @@ COPY --from=build --chown=app:app /app/public ./public
 COPY --from=build --chown=app:app /app/drizzle ./drizzle
 COPY --from=build --chown=app:app /app/scripts/migrate.mjs ./scripts/migrate.mjs
 COPY --from=deps /app/node_modules/drizzle-orm ./node_modules/drizzle-orm
+# пароли сотрудников: docker compose exec app node scripts/staff.mjs password <email>
+COPY --from=build --chown=app:app /app/scripts/staff.mjs ./scripts/staff.mjs
+# argon2 — нативный модуль; копируем целиком, вместе с бинарником под alpine
+COPY --from=deps /app/node_modules/@node-rs ./node_modules/@node-rs
 
 USER app
 EXPOSE 3000

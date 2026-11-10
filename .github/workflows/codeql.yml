@@ -1,0 +1,24 @@
+# CodeQL — статический анализ GitHub: ищет в коде SQL-инъекции, XSS, утечки секретов и т. п.
+# Результаты: вкладка Security → Code scanning.
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 3 * * 1" # раз в неделю, в понедельник ночью
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+      - uses: github/codeql-action/analyze@v3

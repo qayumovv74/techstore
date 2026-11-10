@@ -11,7 +11,15 @@ import { msk } from "@/lib/datetime";
 
 export const metadata: Metadata = { title: "Пользователь" };
 
-const eventLabel = { REGISTER: "Регистрация", LOGIN: "Вход", LOGIN_FAILED: "Неверный пароль", PASSWORD_RESET: "Сброс пароля" };
+const eventLabel = {
+  REGISTER: "Регистрация",
+  LOGIN: "Вход",
+  LOGIN_FAILED: "Неверный пароль",
+  PASSWORD_RESET: "Сброс пароля",
+  PASSWORD_CHANGED: "Смена пароля",
+  SESSIONS_REVOKED: "Выход на других устройствах",
+  EMAIL_VERIFIED: "Почта подтверждена",
+};
 
 export default function UserPage({ params }: PageProps<"/admin/users/[id]">) {
   return (

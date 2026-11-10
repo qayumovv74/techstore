@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { E2E_PEPPER } from "./e2e/helpers";
 
 /**
  * E2E-тесты работают на ОТДЕЛЬНОЙ базе techstore_test и своём сервере на порту 3100,
@@ -33,6 +34,8 @@ export default defineConfig({
       LAN_LINKS: "0", // в письмах localhost, а не адрес в сети
       MAIL_TRANSPORT: "json", // письма не отправляются, только пишутся в лог
       UPLOAD_DIR: "test-results/uploads", // фото из тестов не попадают в рабочую папку
+      PASSWORD_PEPPER: E2E_PEPPER, // тот же перец, что у сида в global-setup
+      RATE_LIMIT: "off", // все тесты идут с одного IP — лимиты по IP сработали бы сразу
     },
   },
   projects: [

@@ -21,7 +21,7 @@ jobs:
       DATABASE_URL: postgres://techstore:techstore@localhost:5432/techstore
       SESSION_SECRET: ci-session-secret-ci-session-secret-1234
       PAYMENT_WEBHOOK_SECRET: ci-webhook-secret-ci-webhook-secret-12345678
-      CRON_SECRET: ci-cron
+      CRON_SECRET: ci-cron-secret-ci-cron-secret-1234567
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -29,6 +29,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # уязвимости в зависимостях, которые попадают на сервер (dev-инструменты не в счёт)
+      - run: npm audit --omit=dev --audit-level=high
       - run: npm run lint
       - run: npm run typecheck
       - run: npx playwright install --with-deps chromium
@@ -41,18 +43,48 @@ jobs:
           name: playwright-report
           path: test-results
 
+  # Автодеплой: после зелёных проверок сервер подтягивает main и пересобирает сайт.
+  # Включается переменной DEPLOY_ENABLED=true и секретами VPS_HOST, VPS_USER, VPS_SSH_KEY (см. README).
   deploy:
     needs: check
-    if: github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
+    # два деплоя одновременно не пойдут: второй подождёт первый
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
     steps:
-      - uses: appleboy/ssh-action@v1.2.0
+      - name: Обновить сервер
+        uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
+          command_timeout: 20m
           script: |
+            set -e
             cd ~/techstore
             git pull --ff-only
-            docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+            compose="docker compose -f docker-compose.prod.yml --env-file .env.production"
+            # бэкап до обновления: миграции применяются при старте нового контейнера
+            mkdir -p backups
+            dump="backups/before-deploy-$(date +%F-%H%M).dump"
+            if $compose exec -T postgres pg_dump -U techstore -Fc techstore > "$dump"; then
+              echo "бэкап: $dump"
+            else
+              rm -f "$dump"; echo "бэкап пропущен: база ещё не запущена"
+            fi
+            # сначала собираем, потом перезапускаем — сайт недоступен секунды, а не всю сборку
+            $compose build app
+            $compose up -d
             docker image prune -f
+
+      - name: Проверить, что сайт поднялся
+        if: vars.DEPLOY_URL != ''
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS "${{ vars.DEPLOY_URL }}/api/health?db=1"; then echo; echo "сайт отвечает"; exit 0; fi
+            sleep 10
+          done
+          echo "Сайт не ответил за 5 минут — смотрите логи: docker compose -f docker-compose.prod.yml logs app"
+          exit 1

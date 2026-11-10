@@ -11,6 +11,8 @@ import { getCity } from "@/lib/city";
 import { deliveryInfo } from "@/data/cities";
 import { OrderError, placeOrder } from "@/lib/orders";
 import { profileSchema, type ActionState } from "@/lib/validation";
+import { mockPaymentsEnabled } from "@/lib/demo";
+import { limitByIp, tooManyMessage } from "@/lib/rate-limit";
 
 const checkoutSchema = z
   .object({
@@ -36,6 +38,11 @@ export async function submitCheckout(_: ActionState, fd: FormData): Promise<Acti
   const parsed = checkoutSchema.safeParse(raw);
   if (!parsed.success) return { fieldErrors: parsed.error.flatten().fieldErrors, values: raw };
   const d = parsed.data;
+
+  if (!user.emailVerified) return { error: "Сначала подтвердите почту — ссылка в письме после регистрации", values: raw };
+  if (!mockPaymentsEnabled()) return { error: "Онлайн-оплата пока не подключена", values: raw };
+  const byIp = await limitByIp("checkout");
+  if (!byIp.ok) return { error: tooManyMessage(byIp.retryAfter), values: raw };
 
   const [cart, city] = await Promise.all([getCart(), getCity()]);
   if (!cart.items.length) return { error: "Корзина пуста", values: raw };

@@ -4,6 +4,7 @@ import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db, schema } from "@/db";
 import { getCurrentUser, STAFF_ROLES } from "@/lib/auth";
+import { limitByIp, tooManyMessage } from "@/lib/rate-limit";
 import { purchaseOf } from "@/lib/reviews";
 import { reviewSchema, type ActionState } from "@/lib/validation";
 
@@ -15,6 +16,9 @@ export async function submitReview(_: ActionState, fd: FormData): Promise<Action
   const raw = { productId: String(fd.get("productId") ?? ""), rating: String(fd.get("rating") ?? ""), text: String(fd.get("text") ?? "") };
   const parsed = reviewSchema.safeParse(raw);
   if (!parsed.success) return { fieldErrors: parsed.error.flatten().fieldErrors, values: { text: raw.text, rating: raw.rating } };
+
+  const byIp = await limitByIp("review");
+  if (!byIp.ok) return { error: tooManyMessage(byIp.retryAfter) };
 
   const orderId = await purchaseOf(user.id, parsed.data.productId);
   if (!orderId) return { error: "Отзыв можно оставить после покупки этого товара" };

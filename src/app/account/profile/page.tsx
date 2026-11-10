@@ -5,7 +5,7 @@ import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { formatPhone } from "@/lib/validation";
 import { Card } from "@/components/ui";
-import { PasswordForm, ProfileForm } from "../forms";
+import { PasswordForm, ProfileForm, SessionsForm } from "../forms";
 import { PanelSkeleton } from "../skeleton";
 import { AvatarForm } from "../avatar-form";
 
@@ -43,6 +43,15 @@ async function Profile() {
         <p className="mt-1 text-sm text-muted">Минимум 8 символов, буквы и цифры.</p>
         <div className="mt-5 max-w-md">
           <PasswordForm />
+        </div>
+      </Card>
+      <Card>
+        <h2 className="text-lg font-bold">Сеансы</h2>
+        <p className="mt-1 text-sm text-muted">
+          Забыли выйти на чужом компьютере или потеряли телефон? Закроем все сеансы, кроме этого.
+        </p>
+        <div className="mt-5">
+          <SessionsForm />
         </div>
       </Card>
     </div>

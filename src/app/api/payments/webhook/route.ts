@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { applyPaymentResult } from "@/lib/orders";
 import { verify } from "@/lib/payments/mock";
+import { mockPaymentsEnabled } from "@/lib/demo";
 
 const payloadSchema = z.object({
   event: z.enum(["payment.succeeded", "payment.failed"]),
@@ -9,6 +10,7 @@ const payloadSchema = z.object({
 });
 
 export async function POST(req: Request) {
+  if (!mockPaymentsEnabled()) return Response.json({ error: "not found" }, { status: 404 });
   // Подпись считается от сырого тела — поэтому сначала text(), а не json()
   const body = await req.text();
   if (!verify(body, req.headers.get("x-signature"))) {

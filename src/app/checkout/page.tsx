@@ -8,6 +8,7 @@ import { getCart } from "@/lib/cart";
 import { getCity } from "@/lib/city";
 import { deliveryInfo } from "@/data/cities";
 import { CheckoutForm } from "./checkout-form";
+import { VerifyEmailNotice } from "@/components/verify-email-notice";
 
 export const metadata: Metadata = { title: "Оформление заказа" };
 
@@ -26,6 +27,13 @@ export default function CheckoutPage() {
 
 async function Checkout() {
   const user = await requireUser("/checkout");
+  if (!user.emailVerified) {
+    return (
+      <div className="max-w-xl">
+        <VerifyEmailNotice email={user.email} reason="Откройте её, подтвердите почту и вернитесь сюда — корзина сохранится." />
+      </div>
+    );
+  }
   const [cart, city, profile, addresses] = await Promise.all([
     getCart(),
     getCity(),

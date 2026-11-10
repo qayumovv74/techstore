@@ -1,0 +1,23 @@
+# Dependabot раз в неделю проверяет зависимости и сам открывает pull request с обновлением.
+# CI прогоняет на нём все тесты — остаётся посмотреть и нажать Merge.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      # мелкие обновления одной пачкой, чтобы не было десяти PR в неделю
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: monthly

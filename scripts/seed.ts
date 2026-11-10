@@ -1,12 +1,20 @@
 /**
  * Демо-данные: категории, ~50 товаров с остатками, три пользователя.
  * Запуск: npm run db:seed
+ *
+ * Только для разработки и тестов: скрипт очищает таблицы и создаёт аккаунты с паролем demo12345.
+ * На сервере (NODE_ENV=production) он не запустится. Сотрудников там заводят командой npm run staff.
  */
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import bcrypt from "bcryptjs";
 import { sql } from "drizzle-orm";
 import * as schema from "../src/db/schema";
+import { hashPassword } from "../src/lib/password";
+
+if (process.env.NODE_ENV === "production") {
+  console.error("db:seed очищает базу и создаёт демо-аккаунты с известным паролем — на сервере его запускать нельзя.");
+  process.exit(1);
+}
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });
@@ -97,11 +105,12 @@ async function main() {
     sql.raw(`TRUNCATE reviews, support_tickets, favorites, order_events, payments, order_items, orders, cart_items, stock, product_images, products, categories, addresses, users RESTART IDENTITY CASCADE`),
   );
 
-  const hash = await bcrypt.hash("demo12345", 10);
+  const hash = await hashPassword("demo12345");
+  const emailVerifiedAt = new Date();
   await db.insert(schema.users).values([
-    { email: "admin@techstore.ru", name: "Админ", passwordHash: hash, role: "ADMIN" },
-    { email: "manager@techstore.ru", name: "Менеджер", passwordHash: hash, role: "MANAGER" },
-    { email: "user@techstore.ru", name: "Покупатель", passwordHash: hash, role: "CUSTOMER", phone: "+79001234567" },
+    { email: "admin@techstore.ru", name: "Админ", passwordHash: hash, role: "ADMIN", emailVerifiedAt },
+    { email: "manager@techstore.ru", name: "Менеджер", passwordHash: hash, role: "MANAGER", emailVerifiedAt },
+    { email: "user@techstore.ru", name: "Покупатель", passwordHash: hash, role: "CUSTOMER", phone: "+79001234567", emailVerifiedAt },
   ]);
 
   const demo = await db.query.users.findFirst({ where: (u, { eq }) => eq(u.email, "user@techstore.ru") });
@@ -143,7 +152,7 @@ async function main() {
   }
 
   console.log(`Готово: 3 пользователя, ${Object.keys(catalog).length} категорий, ${count} товаров.`);
-  console.log("Вход: admin@techstore.ru / manager@techstore.ru / user@techstore.ru, пароль demo12345");
+  console.log("Демо-вход (только локально): admin@techstore.ru / manager@techstore.ru / user@techstore.ru, пароль demo12345");
 }
 
 main()
