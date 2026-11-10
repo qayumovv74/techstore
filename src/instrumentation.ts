@@ -18,6 +18,10 @@ export function register() {
   secret("CRON_SECRET");
   if (process.env.DEMO_STORE === "1") secret("PAYMENT_WEBHOOK_SECRET");
   if (!process.env.DATABASE_URL) problems.push("DATABASE_URL: не задан");
+  // без почты не придёт ссылка подтверждения — а без неё нельзя оформить заказ
+  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    problems.push("SMTP_HOST / SMTP_USER / SMTP_PASS: почта не настроена, письма не будут уходить");
+  }
   if (!process.env.APP_URL) problems.push("APP_URL: не задан");
   else if (!process.env.APP_URL.startsWith("https://")) {
     // cookie сессии в продакшене только для https — по http вход работать не будет
