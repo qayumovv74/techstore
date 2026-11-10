@@ -1,10 +1,14 @@
 /**
- * Аккаунты сотрудников из терминала. Пароль вводится здесь, на экране не отображается
- * и нигде не сохраняется, кроме хеша в базе.
+ * Аккаунты сотрудников из терминала.
  *
- *   npm run staff -- list
- *   npm run staff -- create k.abdu7744+admin@gmail.com ADMIN "Имя"
- *   npm run staff -- password k.abdu7744+admin@gmail.com
+ *   npm run staff -- list                                  список сотрудников
+ *   npm run staff -- link admin@techstore.ru               одноразовая ссылка «задать пароль» (30 минут)
+ *   npm run staff -- create manager2@techstore.ru MANAGER "Имя"   новый сотрудник + ссылка
+ *   npm run staff -- rename admin@techstore.ru admin@мой-домен.ru сменить почту для входа
+ *   npm run staff -- password admin@techstore.ru           задать пароль прямо здесь, в терминале
+ *
+ * По почте сотрудникам ссылки не уходят (их адрес может быть на чужом домене) —
+ * пароль задаётся только так. Ссылку открывает сам сотрудник и дважды вводит пароль.
  *
  * На сервере то же самое внутри контейнера:
  *   docker compose -f docker-compose.prod.yml exec app node scripts/staff.mjs password <email>
@@ -12,7 +16,7 @@
  * Обычный .mjs без TypeScript и drizzle — чтобы работал и в собранном образе.
  */
 import { createInterface } from "node:readline";
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import pg from "pg";
 import { hash } from "@node-rs/argon2";
 
@@ -85,6 +89,20 @@ async function setPassword(db, email) {
   console.log(`✓ Пароль для ${email} (${rows[0].role}) сохранён. Старые сессии этого аккаунта закрыты.`);
 }
 
+/** Ссылка на ту же страницу, что и «Забыли пароль?»: токен одноразовый, в базе только его хеш */
+async function makeLink(db, email) {
+  const { rows } = await db.query("select id, role from users where email = $1", [email]);
+  if (!rows.length) throw new Error(`Нет пользователя ${email}`);
+  const token = randomBytes(32).toString("base64url");
+  await db.query(
+    `insert into password_resets (user_id, token_hash, expires_at) values ($1, $2, now() + interval '30 minutes')`,
+    [rows[0].id, createHash("sha256").update(token).digest("hex")],
+  );
+  const base = (process.env.APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
+  console.log(`Ссылка для ${email} (${rows[0].role}), действует 30 минут и срабатывает один раз:\n\n  ${base}/reset-password?token=${token}\n`);
+  console.log("Откройте её в браузере, введите пароль два раза (от 12 символов, буквы и цифры) — и сразу окажетесь в аккаунте.");
+}
+
 async function main() {
   const [command, rawEmail, role, ...nameParts] = process.argv.slice(2);
   const email = rawEmail?.trim().toLowerCase();
@@ -99,6 +117,17 @@ async function main() {
       if (!rows.length) console.log("Сотрудников нет");
     } else if (command === "password" && email) {
       await setPassword(db, email);
+    } else if (command === "link" && email) {
+      await makeLink(db, email);
+    } else if (command === "rename" && email && role?.includes("@")) {
+      // role здесь — второй аргумент, новая почта
+      const next = role.trim().toLowerCase();
+      const r = await db.query(
+        `update users set email = $2, session_version = session_version + 1 where email = $1 and role in ('ADMIN', 'MANAGER')`,
+        [email, next],
+      );
+      if (!r.rowCount) throw new Error(`Нет сотрудника ${email}`);
+      console.log(`✓ ${email} → ${next}. Пароль прежний, войти нужно заново.`);
     } else if (command === "create" && email && ROLES.includes(role)) {
       const name = nameParts.join(" ").trim() || (role === "ADMIN" ? "Админ" : "Менеджер");
       // пока пароль не задан, войти нельзя: в базе хеш случайной строки
@@ -108,11 +137,13 @@ async function main() {
         [email, name, role, await hashPassword(randomBytes(32).toString("base64url"))],
       );
       console.log(`✓ ${email} — ${role}`);
-      await setPassword(db, email);
+      await makeLink(db, email);
     } else {
       console.log(`Использование:
   npm run staff -- list
+  npm run staff -- link <email>
   npm run staff -- create <email> <ADMIN|MANAGER> [имя]
+  npm run staff -- rename <старая почта> <новая почта>
   npm run staff -- password <email>`);
       process.exitCode = 1;
     }

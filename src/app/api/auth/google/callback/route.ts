@@ -43,8 +43,11 @@ export async function GET(req: NextRequest) {
   // 1) уже входил через Google  2) есть аккаунт с такой почтой — привязываем  3) новый покупатель
   let user = await db.query.users.findFirst({ where: eq(schema.users.googleId, profile.sub) });
   let event: "LOGIN" | "REGISTER" = "LOGIN";
+  // Сотрудники входят только по паролю: Google-аккаунт с той же почтой не должен открывать админку
+  if (user && user.role !== "CUSTOMER") return fail("staff");
   if (!user) {
     const byEmail = await db.query.users.findFirst({ where: eq(schema.users.email, profile.email) });
+    if (byEmail && byEmail.role !== "CUSTOMER") return fail("staff");
     if (byEmail) {
       // Google подтвердил, что почта принадлежит этому человеку
       [user] = await db

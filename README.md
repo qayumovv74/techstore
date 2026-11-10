@@ -128,16 +128,20 @@ SUPPORT_EMAIL_PUBLIC=          # адрес компании для покупа
 
 ## Сотрудники
 
-Демо-аккаунтов с известным паролем на сервере нет: `db:seed` там не запускается. Админов и менеджеров заводят из терминала, пароль вводится там же и на экран не выводится:
+Демо-аккаунтов с известным паролем на сервере нет: `db:seed` там не запускается. Сотрудники: `admin@techstore.ru` (админ) и `manager@techstore.ru` (менеджер).
+
+Пароль задаётся по одноразовой ссылке — открыть в браузере и дважды ввести пароль (от 12 символов, буквы и цифры):
 
 ```bash
-npm run staff -- list
-npm run staff -- create k.abdu7744+admin@gmail.com ADMIN "Имя"   # создать и сразу задать пароль
-npm run staff -- password k.abdu7744+manager@gmail.com           # сменить пароль
+npm run staff -- link admin@techstore.ru        # ссылка на 30 минут, срабатывает один раз
+npm run staff -- list                           # кто есть
+npm run staff -- create anna@techstore.ru MANAGER "Анна"   # новый сотрудник + ссылка
+npm run staff -- rename admin@techstore.ru admin@мой-домен.ru
 ```
 
-На сервере то же внутри контейнера: `docker compose -f docker-compose.prod.yml exec app node scripts/staff.mjs password <email>`.
-Пароль сотрудника — от 12 символов, буквы и цифры. Адреса вида `имя+admin@gmail.com` и `имя+manager@gmail.com` — это разные аккаунты, но письма приходят в один ящик.
+На сервере то же внутри контейнера: `docker compose -f docker-compose.prod.yml exec app node scripts/staff.mjs link <email>`.
+
+Почта сотрудника — только логин: «Забыли пароль?» им писем не шлёт, а вход через Google для них закрыт. Иначе письмо или Google-аккаунт на чужом домене открыли бы админку.
 
 ## Оплата
 

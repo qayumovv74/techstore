@@ -30,7 +30,9 @@ export async function requestReset(_: ForgotState, fd: FormData): Promise<Forgot
   };
 
   const user = await db.query.users.findFirst({ where: eq(schema.users.email, parsed.data.email) });
-  if (!user) return done;
+  // Сотрудникам ссылку по почте не шлём: их адрес может быть на чужом домене (admin@techstore.ru),
+  // и письмо получил бы владелец домена. Пароль сотрудника меняют только через npm run staff.
+  if (!user || user.role !== "CUSTOMER") return done;
 
   // не больше 3 писем за 15 минут
   const since = new Date(Date.now() - 15 * 60_000);
@@ -74,6 +76,11 @@ export async function resetPassword(_: ActionState, fd: FormData): Promise<Actio
     ),
   });
   if (!reset) return { error: "Ссылка устарела или уже использована. Запросите новую." };
+
+  const owner = await db.query.users.findFirst({ where: eq(schema.users.id, reset.userId), columns: { role: true } });
+  if (owner && owner.role !== "CUSTOMER" && parsed.data.next.length < 12) {
+    return { fieldErrors: { next: ["У сотрудников пароль — минимум 12 символов"] } };
+  }
 
   const user = await db.transaction(async (tx) => {
     // новый пароль закрывает все старые сессии; ссылка пришла на почту — значит, адрес подтверждён

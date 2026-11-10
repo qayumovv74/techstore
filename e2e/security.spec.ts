@@ -55,6 +55,16 @@ test.describe("безопасность", () => {
     expect(h["x-powered-by"]).toBeUndefined();
   });
 
+  test("сотруднику ссылка «Забыли пароль?» по почте не уходит", async ({ page }) => {
+    await page.goto("/forgot-password");
+    await page.waitForLoadState("networkidle");
+    await page.getByLabel("Email").filter({ visible: true }).fill("admin@techstore.ru");
+    await page.getByRole("button", { name: "Получить ссылку" }).click();
+    // ответ тот же, что и для всех, но письма нет — в тестах ссылка из письма показывается на странице
+    await expect(page.getByText(/Если аккаунт с адресом admin@techstore\.ru существует/)).toBeVisible();
+    await expect(page.getByRole("link", { name: /Задать новый пароль/ })).toHaveCount(0);
+  });
+
   test("cron без верного секрета закрыт", async ({ request }) => {
     for (const auth of [undefined, "Bearer undefined", "Bearer wrong"]) {
       const res = await request.get("/api/cron/release", { headers: auth ? { Authorization: auth } : {} });

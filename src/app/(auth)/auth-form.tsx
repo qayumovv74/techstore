@@ -14,6 +14,7 @@ const OAUTH_ERRORS: Record<string, string> = {
   denied: "Вход через Google отменён.",
   state: "Сессия входа через Google устарела. Попробуйте ещё раз.",
   unverified: "Почта в Google-аккаунте не подтверждена.",
+  staff: "Сотрудники входят только по почте и паролю.",
   error: "Google не ответил. Попробуйте ещё раз чуть позже.",
 };
 
