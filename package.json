@@ -60,7 +60,7 @@
     "eslint-config-next": "16.4.4",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
-    "typescript": "^5"
+    "typescript": "^7"
   },
   "allowScripts": {
     "@embedded-postgres/windows-x64@17.11.0-beta.19": true,
