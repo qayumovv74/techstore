@@ -19,7 +19,8 @@ export type CardProduct = {
 };
 
 /** Карточка в духе крупных магазинов техники: фото, ключевые характеристики, цена, рассрочка, наличие */
-export function ProductCard({ p, favored = false, inCart = false }: { p: CardProduct; favored?: boolean; inCart?: boolean }) {
+/** eager — для карточек первого экрана: их фото и есть LCP, ленивая загрузка его тормозит */
+export function ProductCard({ p, favored = false, inCart = false, eager = false }: { p: CardProduct; favored?: boolean; inCart?: boolean; eager?: boolean }) {
   const left = Number(p.available);
   const href = `/product/${p.slug}`;
   const specLine = Object.values(p.specs).slice(0, 3).join(" · ");
@@ -31,7 +32,7 @@ export function ProductCard({ p, favored = false, inCart = false }: { p: CardPro
       <Link href={href} tabIndex={-1} aria-hidden className="block">
         {p.image ? (
           <div className="relative aspect-square overflow-hidden rounded-2xl bg-[radial-gradient(circle_at_50%_40%,#ffffff_0%,#ece8f6_100%)]">
-            <Image src={p.image} alt="" fill sizes="(min-width: 1024px) 25vw, 50vw"
+            <Image src={p.image} alt="" fill sizes="(min-width: 1024px) 25vw, 50vw" loading={eager ? "eager" : "lazy"}
               className="object-cover transition-transform duration-500 group-hover:scale-105" />
           </div>
         ) : (

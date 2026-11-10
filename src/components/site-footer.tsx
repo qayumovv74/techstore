@@ -9,7 +9,6 @@ const columns: FooterColumn[] = [
       { label: "Рассрочка", href: "/installment" },
       { label: "Контакты", href: "/contacts" },
       { label: "Поддержка", href: "/support" },
-      { label: "Авторы фото", href: "/photo-credits" },
     ],
   },
   {

@@ -2,7 +2,6 @@ node_modules
 .next
 .next-test
 .pgdata
-.photos-cache
 uploads
 test-results
 playwright-report

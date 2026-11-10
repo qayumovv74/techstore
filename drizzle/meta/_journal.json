@@ -57,6 +57,13 @@
       "when": 1794005480996,
       "tag": "0007_reviews_support_avatar",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794330595366,
+      "tag": "0008_drop_photo_credits",
+      "breakpoints": true
     }
   ]
 }

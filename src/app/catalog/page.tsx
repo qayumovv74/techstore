@@ -57,9 +57,9 @@ async function Catalog({ searchParams }: { searchParams: PageProps<"/catalog">["
           <ActiveFilters f={f} />
           {data.products.length ? (
             <ul className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
-              {data.products.map((p) => (
+              {data.products.map((p, i) => (
                 <li key={p.id} className="flex">
-                  <ProductCard p={p} favored={favs.has(p.id)} inCart={cartIds.has(p.id)} />
+                  <ProductCard p={p} favored={favs.has(p.id)} inCart={cartIds.has(p.id)} eager={i < 3} />
                 </li>
               ))}
             </ul>

@@ -9,13 +9,13 @@ const nextConfig: NextConfig = {
   // В Docker собираем автономный сервер: в образ попадает только нужное из node_modules
   output: process.env.BUILD_STANDALONE ? "standalone" : undefined,
   // роут /uploads читает файлы по динамическому пути, и трассировка тянет в сборку весь проект — исходники там не нужны
-  outputFileTracingExcludes: { "*": ["e2e/**", "src/**", "scripts/**", "deploy/**", ".photos-cache/**", "uploads/**", "test-results/**"] },
+  outputFileTracingExcludes: { "*": ["e2e/**", "src/**", "scripts/**", "deploy/**", "uploads/**", "test-results/**"] },
   experimental: {
     // загрузка фото товаров из админки: до 10 файлов по 8 МБ, с запасом на multipart
     serverActions: { bodySizeLimit: "40mb" },
     proxyClientMaxBodySize: "40mb",
   },
-  // откуда next/image может брать локальные картинки
+  // откуда next/image может брать локальные картинки (у фото товаров в адресе ?v=<хеш> — версия файла)
   images: { localPatterns: [{ pathname: "/products/**" }, { pathname: "/uploads/**" }, { pathname: "/brand/**" }] },
   cacheComponents: true,
   partialPrefetching: true,

@@ -25,7 +25,7 @@ export default async function globalSetup() {
     "/", "/catalog", "/product/apple-airpods-4", "/login", "/register", "/forgot-password", "/reset-password",
     "/cart", "/checkout", "/delivery", "/account", "/account/orders", "/account/profile", "/account/addresses",
     "/account/favorites", "/admin", "/admin/orders", "/admin/users", "/admin/products", "/admin/products/new",
-    "/admin/categories", "/photo-credits", "/api/health",
+    "/admin/categories", "/api/health",
   ];
   for (const route of routes) {
     await fetch(base + route, { redirect: "manual" }).catch(() => {});

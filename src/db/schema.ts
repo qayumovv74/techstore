@@ -115,11 +115,6 @@ export const productImages = pgTable("product_images", {
     .references(() => products.id, { onDelete: "cascade" }),
   url: text("url").notNull(),
   position: integer("position").notNull().default(0),
-  // Фото со свободной лицензией требуют указать автора
-  author: text("author"),
-  license: text("license"),
-  licenseUrl: text("license_url"),
-  sourceUrl: text("source_url"),
 });
 
 export const stock = pgTable("stock", {

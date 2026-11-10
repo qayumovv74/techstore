@@ -3,14 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 
-type Photo = {
-  id: string;
-  url: string;
-  author: string | null;
-  license: string | null;
-  licenseUrl: string | null;
-  sourceUrl: string | null;
-};
+type Photo = { id: string; url: string };
 
 export function Gallery({ images, alt }: { images: Photo[]; alt: string }) {
   const [active, setActive] = useState(0);
@@ -35,27 +28,6 @@ export function Gallery({ images, alt }: { images: Photo[]; alt: string }) {
             </button>
           ))}
         </div>
-      ) : null}
-      {current.author ? (
-        <p className="text-[11px] text-muted">
-          Фото:{" "}
-          {current.sourceUrl ? (
-            <a href={current.sourceUrl} target="_blank" rel="noreferrer" className="underline hover:text-primary">{current.author}</a>
-          ) : (
-            current.author
-          )}
-          {current.license ? (
-            <>
-              {", "}
-              {current.licenseUrl ? (
-                <a href={current.licenseUrl} target="_blank" rel="noreferrer" className="underline hover:text-primary">{current.license}</a>
-              ) : (
-                current.license
-              )}
-            </>
-          ) : null}
-          , Wikimedia Commons
-        </p>
       ) : null}
     </div>
   );
