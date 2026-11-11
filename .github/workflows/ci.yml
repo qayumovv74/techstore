@@ -96,7 +96,7 @@ jobs:
       cancel-in-progress: false
     steps:
       - name: Обновить сервер
-        uses: appleboy/ssh-action@v1.2.0
+        uses: appleboy/ssh-action@v1.2.5
         env:
           APP_IMAGE: ${{ needs.image.outputs.name }}:${{ github.sha }}
           GHCR_USER: ${{ github.actor }}
