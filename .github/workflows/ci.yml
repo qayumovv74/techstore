@@ -20,7 +20,7 @@ jobs:
     env:
       DATABASE_URL: postgres://techstore:techstore@localhost:5432/techstore
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # одноразовые ключи на один прогон: в репозитории их нет, в логах они скрыты
       - name: Сгенерировать ключи для тестов
         run: |
@@ -60,7 +60,7 @@ jobs:
     outputs:
       name: ${{ steps.name.outputs.image }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - id: name
         # в имени образа GHCR допускает только строчные буквы
         run: echo "image=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
