@@ -25,16 +25,11 @@ import bcrypt from "bcryptjs";
 const PARAMS = { memoryCost: 19456, timeCost: 2, parallelism: 1 };
 const PREFIX = `$argon2id$v=19$m=${PARAMS.memoryCost},t=${PARAMS.timeCost},p=${PARAMS.parallelism}$`;
 
-// только для разработки и тестов, на сервере обязателен свой PASSWORD_PEPPER
-const DEV_PEPPER = "techstore-dev-pepper-do-not-use-in-production";
-
+// Ключа в коде нет: перец только из окружения (.env на компьютере, .env.production на сервере)
 function pepper() {
   const value = process.env.PASSWORD_PEPPER;
-  if (value && value.length >= 32) return Buffer.from(value);
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("PASSWORD_PEPPER не задан или короче 32 символов");
-  }
-  return Buffer.from(DEV_PEPPER);
+  if (!value || value.length < 32) throw new Error("PASSWORD_PEPPER не задан или короче 32 символов — добавьте его в .env");
+  return Buffer.from(value);
 }
 
 export function hashPassword(password: string) {

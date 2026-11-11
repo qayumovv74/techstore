@@ -19,11 +19,16 @@ jobs:
         options: --health-cmd "pg_isready -U techstore" --health-interval 5s --health-retries 10
     env:
       DATABASE_URL: postgres://techstore:techstore@localhost:5432/techstore
-      SESSION_SECRET: ci-session-secret-ci-session-secret-1234
-      PAYMENT_WEBHOOK_SECRET: ci-webhook-secret-ci-webhook-secret-12345678
-      CRON_SECRET: ci-cron-secret-ci-cron-secret-1234567
     steps:
       - uses: actions/checkout@v4
+      # одноразовые ключи на один прогон: в репозитории их нет, в логах они скрыты
+      - name: Сгенерировать ключи для тестов
+        run: |
+          for name in SESSION_SECRET PASSWORD_PEPPER PAYMENT_WEBHOOK_SECRET CRON_SECRET; do
+            value=$(openssl rand -hex 32)
+            echo "::add-mask::$value"
+            echo "$name=$value" >> "$GITHUB_ENV"
+          done
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -43,12 +48,48 @@ jobs:
           name: playwright-report
           path: test-results
 
-  # Автодеплой: после зелёных проверок сервер подтягивает main и пересобирает сайт.
+  # Образ сайта собирается здесь, на серверах GitHub, и кладётся в GitHub Container Registry.
+  # Серверу остаётся только скачать готовый образ — хватает даже тарифа с 2 ГБ памяти.
+  image:
+    needs: check
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      name: ${{ steps.name.outputs.image }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: name
+        # в имени образа GHCR допускает только строчные буквы
+        run: echo "image=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.name.outputs.image }}:latest
+            ${{ steps.name.outputs.image }}:${{ github.sha }}
+          # метка связывает образ с репозиторием — тогда GITHUB_TOKEN деплоя может его скачать
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Автодеплой: после зелёных проверок и сборки образа сервер скачивает его и перезапускает сайт.
   # Включается переменной DEPLOY_ENABLED=true и секретами VPS_HOST, VPS_USER, VPS_SSH_KEY (см. README).
   deploy:
-    needs: check
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.DEPLOY_ENABLED == 'true'
+    needs: image
+    if: vars.DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      packages: read
     # два деплоя одновременно не пойдут: второй подождёт первый
     concurrency:
       group: deploy-production
@@ -56,15 +97,21 @@ jobs:
     steps:
       - name: Обновить сервер
         uses: appleboy/ssh-action@v1.2.0
+        env:
+          APP_IMAGE: ${{ needs.image.outputs.name }}:${{ github.sha }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
+          envs: APP_IMAGE,GHCR_USER,GHCR_TOKEN
           command_timeout: 20m
           script: |
             set -e
             cd ~/techstore
             git pull --ff-only
+            export APP_IMAGE
             compose="docker compose -f docker-compose.prod.yml --env-file .env.production"
             # бэкап до обновления: миграции применяются при старте нового контейнера
             mkdir -p backups
@@ -74,8 +121,10 @@ jobs:
             else
               rm -f "$dump"; echo "бэкап пропущен: база ещё не запущена"
             fi
-            # сначала собираем, потом перезапускаем — сайт недоступен секунды, а не всю сборку
-            $compose build app
+            # токен GitHub живёт только во время этого деплоя
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+            $compose pull app
+            docker logout ghcr.io
             $compose up -d
             docker image prune -f
 

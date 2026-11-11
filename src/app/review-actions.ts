@@ -1,5 +1,6 @@
 "use server";
 
+import { z } from "zod";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db, schema } from "@/db";
@@ -39,7 +40,9 @@ export async function submitReview(_: ActionState, fd: FormData): Promise<Action
 export async function deleteReview(fd: FormData) {
   const user = await getCurrentUser();
   if (!user) return;
-  const id = String(fd.get("id") ?? "");
+  const parsedId = z.uuid().safeParse(fd.get("id"));
+  if (!parsedId.success) return;
+  const id = parsedId.data;
   const review = await db.query.reviews.findFirst({ where: eq(schema.reviews.id, id), columns: { userId: true } });
   if (!review) return;
 

@@ -11,7 +11,7 @@ export function Gallery({ images, alt }: { images: Photo[]; alt: string }) {
   return (
     <div className="flex flex-col gap-3">
       <div className="relative aspect-square overflow-hidden rounded-2xl border border-border bg-white">
-        <Image src={current.url} alt={alt} fill priority sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
+        <Image src={current.url} alt={alt} fill preload loading="eager" fetchPriority="high" sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
       </div>
       {images.length > 1 ? (
         <div className="flex gap-2" role="tablist" aria-label="Фото товара">

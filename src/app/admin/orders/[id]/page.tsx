@@ -93,6 +93,12 @@ async function Order({ params }: { params: PageProps<"/admin/orders/[id]">["para
               <li key={i.id} className="flex justify-between gap-3"><span>{i.nameAtPurchase} × {i.qty}</span><span>{formatPrice(i.priceAtPurchase * i.qty)}</span></li>
             ))}
             <li className="flex justify-between text-muted"><span>Доставка</span><span>{formatPrice(order.deliveryPrice)}</span></li>
+            {order.discount > 0 ? (
+              <li className="flex justify-between text-lilac">
+                <span>Скидка вместо отмены{order.refunded > 0 ? ` (возврат на карту ${formatPrice(order.refunded)})` : ""}</span>
+                <span>−{formatPrice(order.discount)}</span>
+              </li>
+            ) : null}
             <li className="flex justify-between border-t border-border pt-2 font-bold"><span>Итого</span><span>{formatPrice(order.total)}</span></li>
           </ul>
           <h3 className="mt-4 font-semibold">Платежи</h3>

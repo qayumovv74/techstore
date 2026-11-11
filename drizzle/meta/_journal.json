@@ -71,6 +71,13 @@
       "when": 1794335508830,
       "tag": "0009_auth_hardening",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794342072349,
+      "tag": "0010_retention_discount",
+      "breakpoints": true
     }
   ]
 }

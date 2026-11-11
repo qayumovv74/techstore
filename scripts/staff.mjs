@@ -22,13 +22,10 @@ import { hash } from "@node-rs/argon2";
 
 // Те же параметры и перец, что в src/lib/password.ts. Меняешь там — поменяй и здесь.
 const PARAMS = { memoryCost: 19456, timeCost: 2, parallelism: 1 };
-const DEV_PEPPER = "techstore-dev-pepper-do-not-use-in-production";
-
 function pepper() {
   const value = process.env.PASSWORD_PEPPER;
-  if (value && value.length >= 32) return Buffer.from(value);
-  if (process.env.NODE_ENV === "production") throw new Error("PASSWORD_PEPPER не задан или короче 32 символов");
-  return Buffer.from(DEV_PEPPER);
+  if (!value || value.length < 32) throw new Error("PASSWORD_PEPPER не задан или короче 32 символов — добавьте его в .env");
+  return Buffer.from(value);
 }
 
 const hashPassword = (password) => hash(password, { ...PARAMS, secret: pepper() });

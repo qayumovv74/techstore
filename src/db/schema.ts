@@ -65,6 +65,8 @@ export const users = pgTable("users", {
    * сессия недействительна. Увеличиваем при смене пароля, смене роли и «Выйти на других устройствах».
    */
   sessionVersion: integer("session_version").notNull().default(0),
+  /** Когда покупателю предложили скидку за отказ от отмены. Предложение — один раз на человека */
+  retentionOfferAt: timestamp("retention_offer_at", { withTimezone: true }),
   ...timestamps,
 });
 
@@ -239,8 +241,12 @@ export const orders = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "restrict" }),
     status: orderStatusEnum("status").notNull().default("PENDING_PAYMENT"),
-    /** Товары + доставка, в копейках */
+    /** К оплате: товары + доставка − скидка, в копейках */
     total: integer("total").notNull(),
+    /** Скидка, которую предложили вместо отмены заказа (уже вычтена из total) */
+    discount: integer("discount").notNull().default(0),
+    /** Сколько вернули на карту по уже оплаченному заказу (скидка после оплаты) */
+    refunded: integer("refunded").notNull().default(0),
     deliveryMethod: deliveryMethodEnum("delivery_method").notNull().default("COURIER"),
     deliveryPrice: integer("delivery_price").notNull().default(0),
     contactName: text("contact_name").notNull().default(""),

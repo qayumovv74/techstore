@@ -8,19 +8,26 @@ services:
       POSTGRES_USER: techstore
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?задайте POSTGRES_PASSWORD}
       POSTGRES_DB: techstore
+      # пароль роли сайта (techstore_app): создаётся при первом запуске базы
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?задайте APP_DB_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./deploy/postgres-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U techstore"]
       interval: 5s
       retries: 10
 
   app:
+    # готовый образ из GitHub (собирает CI); без него — сборка здесь: up -d --build
+    image: ${APP_IMAGE:-ghcr.io/qayumovv74/techstore:latest}
     build: .
     restart: unless-stopped
     env_file: .env.production
     environment:
-      DATABASE_URL: postgres://techstore:${POSTGRES_PASSWORD}@postgres:5432/techstore
+      # сайт — под ролью без права менять схему; миграции при старте — от владельца базы
+      DATABASE_URL: postgres://techstore_app:${APP_DB_PASSWORD}@postgres:5432/techstore
+      MIGRATION_DATABASE_URL: postgres://techstore:${POSTGRES_PASSWORD}@postgres:5432/techstore
     volumes:
       - uploads:/data/uploads
     depends_on:

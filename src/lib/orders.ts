@@ -6,6 +6,7 @@ import { sendMail } from "@/lib/mail";
 import { orderCreatedMail, orderPaidMail, orderStatusMail } from "@/lib/mail/templates";
 import { createPayment } from "@/lib/payments/mock";
 import { CHANNEL } from "@/lib/realtime";
+import { retentionOffer } from "@/lib/retention";
 
 export const RESERVE_MINUTES = 15;
 
@@ -157,6 +158,52 @@ async function cancelInTx(tx: Tx, orderId: string, actorId: string | null, expec
   await tx.insert(schema.orderEvents).values({ orderId, fromStatus: order.status, toStatus: "CANCELLED", actorId });
   await publish(tx, order, "CANCELLED");
   return true;
+}
+
+/**
+ * Покупатель передумал отменять заказ и взял скидку (lib/retention.ts).
+ * До оплаты — новая сумма и новая ссылка на оплату, после оплаты — частичный возврат на карту.
+ * Строки покупателя и заказа заблокированы до конца транзакции: двойной клик скидку не удвоит.
+ */
+export async function applyRetentionDiscount(orderId: string, userId: string) {
+  return db.transaction(async (tx) => {
+    const [user] = await tx
+      .select({ offeredAt: schema.users.retentionOfferAt })
+      .from(schema.users)
+      .where(eq(schema.users.id, userId))
+      .for("update");
+    const order = await lockOrder(tx, orderId);
+    if (!user || !order || order.userId !== userId) return null;
+    const offer = retentionOffer(order, user.offeredAt);
+    if (!offer) return null;
+
+    await tx.update(schema.users).set({ retentionOfferAt: new Date() }).where(eq(schema.users.id, userId));
+    await tx
+      .update(schema.orders)
+      .set({ discount: offer.discount, total: offer.newTotal, refunded: offer.refund })
+      .where(eq(schema.orders.id, orderId));
+
+    if (order.status === "PENDING_PAYMENT") {
+      // старая ссылка на оплату была на прежнюю сумму — закрываем её и выдаём новую
+      await tx
+        .update(schema.payments)
+        .set({ status: "FAILED" })
+        .where(and(eq(schema.payments.orderId, orderId), eq(schema.payments.status, "PENDING")));
+      await tx.insert(schema.payments).values({ orderId, amount: offer.newTotal, ...createPayment() });
+    }
+    // Заказ уже оплачен: в настоящем шлюзе здесь частичный возврат через его API на offer.refund.
+    // Тестовый шлюз деньги не списывал, поэтому достаточно записать сумму возврата в заказ.
+    await publish(tx, order, order.status);
+    return offer;
+  });
+}
+
+/** Покупатель отказался от скидки — больше её не предлагаем */
+export async function markRetentionOfferUsed(userId: string) {
+  await db
+    .update(schema.users)
+    .set({ retentionOfferAt: sql`coalesce(${schema.users.retentionOfferAt}, now())` })
+    .where(eq(schema.users.id, userId));
 }
 
 /** Ручная смена статуса менеджером или отмена покупателем */

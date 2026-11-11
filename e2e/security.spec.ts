@@ -132,6 +132,36 @@ test.describe("безопасность", () => {
     await other.close();
   });
 
+  test("чужой заказ не открыть: каждый видит только свои данные", async ({ page, browser }) => {
+    // покупатель А оформляет заказ
+    await register(page);
+    await confirmEmail(page);
+    await page.goto("/product/apple-airpods-4");
+    await page.waitForLoadState("networkidle");
+    await page.locator("main").last().getByRole("button", { name: "Купить" }).first().click();
+    await expect(page.locator("main").last().getByRole("link", { name: /В корзине/ }).first()).toBeVisible();
+    await page.goto("/checkout");
+    await page.getByLabel("Телефон").filter({ visible: true }).fill("89001234567");
+    await page.getByLabel(/Улица и дом/).filter({ visible: true }).fill("ул. Тверская, д. 7");
+    await page.getByRole("button", { name: "Перейти к оплате" }).filter({ visible: true }).click();
+    await page.waitForURL(/\/mock-pay\//);
+    const orderUrl = (await page.getByRole("link", { name: "Передумали? Отменить заказ" }).getAttribute("href"))!.split("?")[0];
+
+    // покупатель Б подставляет адрес чужого заказа
+    const other = await browser.newPage();
+    await register(other);
+    const res = await other.goto(orderUrl);
+    await expect(other.getByText(/не найден/i).first()).toBeVisible();
+    expect(await other.content()).not.toContain("Тверская");
+    expect(res?.status()).not.toBe(500);
+    await other.goto("/account/orders");
+    await expect(other.getByRole("link", { name: /TS-\d+/ })).toHaveCount(0);
+    // и в админку не пустит
+    await other.goto("/admin");
+    await expect(other).toHaveURL(/\/$/);
+    await other.close();
+  });
+
   test("смена пароля закрывает сессии на других устройствах", async ({ page, browser }) => {
     const email = await register(page);
     const other = await browser.newPage();

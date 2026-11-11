@@ -12,7 +12,8 @@ import { pendingPayment, releaseExpiredReservations } from "@/lib/orders";
 import { LiveRefresh } from "@/components/live-refresh";
 import { OrderTimeline, StatusBadge } from "@/components/order-timeline";
 import { PanelSkeleton } from "../../skeleton";
-import { cancelMyOrder } from "./actions";
+import { CancelOrder } from "./cancel-order";
+import { retentionOffer } from "@/lib/retention";
 import { buttonVariants } from "@/components/ui/button-variants";
 
 export const metadata: Metadata = { title: "Заказ" };
@@ -28,7 +29,7 @@ export default function OrderPage(props: PageProps<"/account/orders/[id]">) {
 async function Order({ params, searchParams }: PageProps<"/account/orders/[id]">) {
   const user = await requireUser("/account/orders");
   const { id } = await params;
-  const { payment: paymentResult } = await searchParams;
+  const { payment: paymentResult, cancel } = await searchParams;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   await releaseExpiredReservations();
 
@@ -38,7 +39,10 @@ async function Order({ params, searchParams }: PageProps<"/account/orders/[id]">
   });
   if (!order) notFound();
   const payment = order.status === "PENDING_PAYMENT" ? await pendingPayment(order.id) : null;
-  const itemsTotal = order.total - order.deliveryPrice;
+  const itemsTotal = order.total + order.discount - order.deliveryPrice;
+  // предложение «скидка вместо отмены» считаем здесь, на сервере
+  const owner = await db.query.users.findFirst({ where: eq(schema.users.id, user.id), columns: { retentionOfferAt: true } });
+  const offer = retentionOffer(order, owner?.retentionOfferAt ?? null);
   const live = !["DELIVERED", "CANCELLED"].includes(order.status);
 
   return (
@@ -50,6 +54,12 @@ async function Order({ params, searchParams }: PageProps<"/account/orders/[id]">
 
       {paymentResult === "success" && order.status !== "PENDING_PAYMENT" ? (
         <p className="rounded-2xl bg-primary/10 p-4 text-sm font-medium text-primary">Оплата прошла. Письмо с деталями отправили на {user.email}.</p>
+      ) : null}
+      {order.discount > 0 && order.status !== "CANCELLED" ? (
+        <p role="status" className="rounded-2xl border border-violet/40 bg-violet/10 p-4 text-sm">
+          Спасибо, что остались! Скидка {formatPrice(order.discount)} уже в заказе
+          {order.refunded > 0 ? ` — ${formatPrice(order.refunded)} возвращаем на карту, деньги придут в течение 1–3 рабочих дней.` : "."}
+        </p>
       ) : null}
       {paymentResult === "failed" && order.status === "PENDING_PAYMENT" ? (
         <p className="rounded-2xl bg-danger/10 p-4 text-sm text-danger">Банк отклонил платёж. Попробуйте другую карту — товары ещё в резерве.</p>
@@ -101,16 +111,25 @@ async function Order({ params, searchParams }: PageProps<"/account/orders/[id]">
             ))}
             <li className="flex justify-between text-muted"><span>Товары</span><span>{formatPrice(itemsTotal)}</span></li>
             <li className="flex justify-between text-muted"><span>Доставка</span><span>{order.deliveryPrice ? formatPrice(order.deliveryPrice) : "бесплатно"}</span></li>
+            {order.discount > 0 ? (
+              <li className="flex justify-between text-lilac"><span>Скидка</span><span>−{formatPrice(order.discount)}</span></li>
+            ) : null}
             <li className="flex justify-between border-t border-border pt-2 font-bold"><span>Итого</span><span>{formatPrice(order.total)}</span></li>
           </ul>
         </div>
       </div>
 
       {["PENDING_PAYMENT", "PAID"].includes(order.status) ? (
-        <form action={cancelMyOrder}>
-          <input type="hidden" name="id" value={order.id} />
-          <button className="text-sm text-danger hover:underline">Отменить заказ</button>
-        </form>
+        // key: после «Оставить со скидкой» блок собирается заново, уже закрытым
+        <CancelOrder
+          key={`${order.discount}:${offer ? "offer" : "plain"}`}
+          orderId={order.id}
+          number={order.number}
+          total={order.total}
+          paid={order.status === "PAID"}
+          offer={offer}
+          initiallyOpen={cancel === "1"}
+        />
       ) : null}
     </div>
   );

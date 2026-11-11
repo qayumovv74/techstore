@@ -110,3 +110,35 @@ test("админ видит в журнале регистрацию с IP и у
   await expect(row).toContainText("127.0.0.1");
   await expect(row).toContainText(/Windows|Linux|Mac/);
 });
+
+test("отмена: сначала скидка 30%, второй раз — без предложения", async ({ page, isMobile }) => {
+  test.skip(isMobile, "проверяем на десктопе");
+  await signUpWithCart(page);
+  await checkout(page);
+  // со страницы оплаты уходим к заказу, не оплачивая
+  await page.goto("/account/orders");
+  await page.getByRole("link", { name: /TS-\d+/ }).first().click();
+  await page.waitForURL(/\/account\/orders\/[0-9a-f-]{36}/);
+  await page.getByRole("button", { name: "Отменить заказ" }).click();
+  const offer = page.getByRole("region", { name: "Предложение вместо отмены" });
+  await expect(offer.getByText("Дарим скидку 30%")).toBeVisible();
+  await expect(offer).toContainText(/10\s493/); // 14 990 ₽ − 30% = 10 493 ₽
+  await offer.getByRole("button", { name: "Оставить заказ со скидкой" }).click();
+  await expect(page.getByText(/Скидка\s4\s497/)).toBeVisible();
+  await expect(page.getByRole("link", { name: /Оплатить 10\s493/ })).toBeVisible();
+
+  // второй раз скидку не предлагаем — только подтверждение отмены
+  await page.getByRole("button", { name: "Отменить заказ" }).click();
+  await expect(page.getByText("Дарим скидку")).toHaveCount(0);
+  await page.getByRole("region", { name: "Подтверждение отмены" }).getByRole("button", { name: "Да, отменить" }).click();
+  await expect(page.locator("main").getByText("Отменён").first()).toBeVisible();
+});
+
+test("со страницы оплаты «Отменить заказ» сразу показывает скидку", async ({ page, isMobile }) => {
+  test.skip(isMobile, "проверяем на десктопе");
+  await signUpWithCart(page, "jbl-charge-6");
+  await checkout(page);
+  await page.getByRole("link", { name: "Передумали? Отменить заказ" }).click();
+  await page.waitForURL(/\/account\/orders\/[0-9a-f-]{36}\?cancel=1/);
+  await expect(page.getByRole("region", { name: "Предложение вместо отмены" })).toContainText("Дарим скидку 30%");
+});

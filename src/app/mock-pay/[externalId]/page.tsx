@@ -71,6 +71,14 @@ async function Gateway({ params }: { params: PageProps<"/mock-pay/[externalId]">
         </ul>
         <p className="mt-2 text-xs text-muted">Имя — любое латиницей, срок — любой в будущем, CVC — любые 3 цифры.</p>
       </div>
+
+      {/* отмена — на странице заказа: там же предложим скидку вместо отмены */}
+      <Link
+        href={`/account/orders/${payment.order.id}?cancel=1`}
+        className="self-center text-sm text-muted underline-offset-4 hover:text-danger hover:underline"
+      >
+        Передумали? Отменить заказ
+      </Link>
     </div>
   );
 }
